@@ -1456,6 +1456,7 @@
   <div id="tile-pos" data-kind="image" data-src="foragers-pos.jpg" data-label="GLOBAL FORAGERS — POS / IN-STORE"></div>
   <div id="tile-exo" data-src="exo-louvres-film.mp4" data-label="BECOME AN OUTSIDER — EXO LOUVRES FILM — SOUND ON"></div>
   <div id="tile-outkv" data-kind="image" data-src="outsider-key-visual.jpg" data-label="BECOME AN OUTSIDER — KEY VISUAL"></div>
+  <div id="tile-wahs" data-src="wahs-film.mp4" data-label="UP THE WAHS — CAMPAIGN FILM — 00:25 — SOUND ON"></div>
 </div>
 
 <section class="feature" id="feature">
@@ -1659,8 +1660,10 @@
       <div class="node"><div class="node-card fnode-card"><span class="nc-title">SOCIAL</span><span class="nc-dim">SOON</span></div><span class="node-line"></span></div>
     </div>
     <div class="fdrifter att-bottom" data-cx=".48" data-cy=".16" data-ax="40" data-ay="30" data-wx=".06" data-wy=".09" data-ph="3.0">
-      <span class="chip fchip slotchip"><span>MOVIE</span></span>
-      <div class="node"><div class="node-card fnode-card"><span class="nc-title">MOVIE</span><span class="nc-dim">IN PRODUCTION</span></div><span class="node-line"></span></div>
+      <button class="chip fchip" data-tile="tile-wahs" data-label="MOVIE &mdash; UP THE WAHS &mdash; 00:25 &mdash; SOUND ON" aria-label="Play the Up the Wahs campaign film">
+        <video muted loop playsinline autoplay src="chip-wahs.webm"></video>
+      </button>
+      <div class="node"><div class="node-card fnode-card"><span class="nc-title">MOVIE</span><span class="nc-dim">00:25 &middot; CAMPAIGN FILM</span></div><span class="node-line"></span></div>
     </div>
     <div class="fdrifter att-top" data-cx=".26" data-cy=".50" data-ax="40" data-ay="30" data-wx=".07" data-wy=".11" data-ph="5.1">
       <span class="chip fchip slotchip"><span>WEB</span></span>
@@ -2409,7 +2412,7 @@
     const startTour=()=>{
       const stops=[...document.querySelectorAll('section')];
       // sections whose hero film the tour opens, plays, then closes
-      const FILMS={feature:'tile-ada',feature2:'tile-forager',feature3:'tile-exo'};
+      const FILMS={feature:'tile-ada',feature2:'tile-forager',feature3:'tile-exo',feature4:'tile-wahs'};
       const go=(idx)=>{
         if(tourStop||idx>=stops.length)return;
         const sec=stops[idx];
@@ -2683,7 +2686,7 @@
 
   // mobile: constellations are hidden, so let a tap on a film case study play it
   if(matchMedia('(max-width:700px)').matches){
-    const M={feature:'tile-ada',feature2:'tile-forager',feature3:'tile-exo'};
+    const M={feature:'tile-ada',feature2:'tile-forager',feature3:'tile-exo',feature4:'tile-wahs'};
     Object.entries(M).forEach(([sid,tid])=>{
       const sec=document.getElementById(sid), tile=document.getElementById(tid);
       if(!sec||!tile)return;
