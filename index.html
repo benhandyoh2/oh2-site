@@ -2214,7 +2214,7 @@
       // once everyone has landed, hand transforms to the magnet loop
       setTimeout(()=>{
         starNodes.forEach(nd=>{nd.el.style.transition=
-          'opacity .3s ease,background .35s ease,border-color .35s ease,box-shadow .35s ease,color .35s ease';});
+          'opacity .3s ease,background .2s ease,border-color .2s ease,box-shadow .2s ease,color .2s ease';});
         starMagnet(hero,cx,cy);
         // clockwise preview — each node glows & zooms in turn (~10s sweep)
         const ordered=[...starNodes].sort((a,b)=>{
@@ -2225,12 +2225,12 @@
           setTimeout(()=>{
             if(nd.lit)return;               // visitor already lit this one
             nd.el.classList.add('lit'); nd.ts=1.42;
-            setTimeout(()=>{ if(!nd.lit){nd.el.classList.remove('lit'); nd.ts=1;} },560);
-          },300+k*640);
+            setTimeout(()=>{ if(!nd.lit){nd.el.classList.remove('lit'); nd.ts=1;} },300);
+          },200+k*230);
         });
       },150+n*58+500);
       // after the sweep: "you get the idea" animates on, then the finale
-      const sweepEnd=150+n*58+500+300+n*640+650;
+      const sweepEnd=150+n*58+500+200+n*230+520;
       setTimeout(()=>{
         if(tourStop)return;
         const idea=document.getElementById('ccIdea');
@@ -2257,7 +2257,7 @@
             if(nd._infl>0.001){tx=(m.x-nd.hx)*nd._infl*K;ty=(m.y-nd.hy)*nd._infl*K;}
           }else{nd._infl*=0.9;}
           nd.ox+=(tx-nd.ox)*0.18; nd.oy+=(ty-nd.oy)*0.18;
-          nd.s+=(nd.ts-nd.s)*0.16;
+          nd.s+=(nd.ts-nd.s)*0.30;
           nd.el.style.transform=
             `translate(-50%,-50%) translate(${nd.ox.toFixed(1)}px,${nd.oy.toFixed(1)}px) scale(${nd.s.toFixed(3)})`;
           nd.line.setAttribute('x2',(nd.hx+nd.ox).toFixed(1));
