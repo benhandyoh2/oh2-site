@@ -1103,11 +1103,38 @@
     opacity:0;pointer-events:none;transition:opacity .55s ease;
   }
   .phone.filming .ph-screen{opacity:1;pointer-events:auto;cursor:pointer}
-  .ph-screen video{width:100%;height:100%;object-fit:contain;display:block}
-  /* the frame is rotated, so the picture is counter-rotated to sit upright */
-  .phone.landscape .ph-screen video{
-    position:absolute;left:50%;top:50%;
-    transform:translate(-50%,-50%) rotate(-90deg);
+  /* the picture and its controls ride on one stage, so when the frame turns on
+     its side the stage counter-rotates and everything stays upright together */
+  .ph-stage{
+    position:absolute;left:50%;top:50%;width:100%;height:100%;
+    transform:translate(-50%,-50%);
+  }
+  .phone.landscape .ph-stage{transform:translate(-50%,-50%) rotate(-90deg)}
+  .ph-stage video{width:100%;height:100%;object-fit:contain;display:block}
+  /* sound rides along the bottom edge of the picture */
+  .ph-sound{
+    position:absolute;left:50%;bottom:14px;transform:translateX(-50%);z-index:2;
+    display:inline-flex;align-items:center;gap:8px;
+    margin:0;padding:8px 13px;border-radius:999px;cursor:pointer;
+    font-family:var(--mono);font-size:10px;letter-spacing:.2em;
+    text-transform:uppercase;color:#fff;white-space:nowrap;
+    background:rgba(10,12,14,.52);border:1px solid rgba(255,255,255,.28);
+    backdrop-filter:blur(14px) saturate(1.2);-webkit-backdrop-filter:blur(14px) saturate(1.2);
+    opacity:0;pointer-events:none;
+    transition:opacity .5s ease .8s,background .25s ease,border-color .25s ease;
+  }
+  .phone.filming .ph-sound{opacity:1;pointer-events:auto}
+  .ph-sound:hover{background:rgba(10,12,14,.74);border-color:rgba(255,255,255,.52)}
+  .ph-sound svg{width:15px;height:15px;display:block;flex:0 0 auto;fill:none;
+    stroke:#fff;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+  .ph-sound .ps-wave{opacity:0}
+  .ph-sound[aria-pressed="true"] .ps-wave{opacity:1}
+  .ph-sound[aria-pressed="true"] .ps-x{opacity:0}
+  /* the chat has run long by now, so older messages slide up out of frame */
+  .chat-wrap.deep{max-height:84%;overflow:hidden;justify-content:flex-end}
+  .chat-wrap.deep.masked{
+    -webkit-mask-image:linear-gradient(to bottom,transparent,#000 11%);
+    mask-image:linear-gradient(to bottom,transparent,#000 11%);
   }
 
   /* ---------- the phone boots and finds you ---------- */
@@ -1393,8 +1420,25 @@
       <span class="rb-text">what? you just made that stat up!</span>
     </div>
     <div class="thesis-box" id="thesisBox2"><span class="tt-txt" id="ttTxt2"></span></div>
+    <div class="reply-bubble" id="replyBubble2">
+      <span class="rb-dots"><i></i><i></i><i></i></span>
+      <span class="rb-text">ok. that one got me.</span>
     </div>
-    <div class="ph-screen" id="phScreen"><video id="phFilm" playsinline preload="none" muted></video></div>
+    <div class="thesis-box" id="thesisBox3"><span class="tt-txt" id="ttTxt3"></span></div>
+    </div>
+    <div class="ph-screen" id="phScreen">
+      <div class="ph-stage" id="phStage">
+        <video id="phFilm" playsinline preload="none" muted></video>
+        <button class="ph-sound" id="phSound" type="button" aria-pressed="false" aria-label="Turn sound on">
+          <svg viewBox="0 0 20 20" aria-hidden="true">
+            <path d="M4.2 7.6h2.9L11 4.2v11.6L7.1 12.4H4.2z"/>
+            <g class="ps-wave"><path d="M13.9 7.2c1.2 1.7 1.2 4 0 5.6"/><path d="M16.3 5.2c2.1 2.8 2.1 6.9 0 9.6"/></g>
+            <g class="ps-x"><path d="M14.1 7.6l4.3 4.8"/><path d="M18.4 7.6l-4.3 4.8"/></g>
+          </svg>
+          <span class="ps-lbl">Sound on</span>
+        </button>
+      </div>
+    </div>
     <span class="ph-home" aria-hidden="true"></span>
   </div>
 </section>
@@ -2354,7 +2398,7 @@
     let tourStop=false, tourTimer=null;
     const cancelTour=(e)=>{
       // interacting with the choice buttons is not a "take over" gesture
-      if(e&&e.target&&e.target.closest&&e.target.closest('#connChoice,#lbAudio'))return;
+      if(e&&e.target&&e.target.closest&&e.target.closest('#connChoice,#lbAudio,#phSound'))return;
       tourStop=true;clearTimeout(tourTimer);
       const ch=document.getElementById('connChoice'); if(ch)ch.classList.remove('on');
       document.querySelectorAll('.feature.chatting').forEach(f=>f.classList.remove('chatting'));
@@ -2423,7 +2467,7 @@
             tourTimer=setTimeout(()=>go(idx+1),1400); };
           if(window.__thesisSaid) advance();
           else{ addEventListener('thesis-said',advance,{once:true});
-            tourTimer=setTimeout(advance,60000); }   // safety net
+            tourTimer=setTimeout(advance,150000); }   // safety net
         }else{
           tourTimer=setTimeout(()=>go(idx+1),9000);
         }
@@ -2470,8 +2514,18 @@
       host.appendChild(caret);
       return {caret,chars};
     };
+    // and the sign-off, once the film has done the arguing
+    const SEG3=[
+      {t:'That’s ',dim:false},
+      {t:'Ride to Survive',dim:false},
+      {t:' — film, web and social, put in front of the riders it’s about',dim:true},
+      {t:'. Want the rest? 👇',dim:false},
+    ];
+    const box3=document.getElementById('thesisBox3');
+    const txt3=document.getElementById('ttTxt3');
     const A=build(SEG,txt);
     const B=(box2&&txt2)?build(SEG2,txt2):null;
+    const C=(box3&&txt3)?build(SEG3,txt3):null;
     let started=false;
     const type=(bx,rig,done)=>{
       let i=0;
@@ -2493,33 +2547,55 @@
     const playFilm=()=>{
       const ph=document.getElementById('phone');
       const scr=document.getElementById('phScreen');
+      const stage=document.getElementById('phStage');
       const v=document.getElementById('phFilm');
+      const snd=document.getElementById('phSound');
       const tile=document.getElementById('tile-ada');
-      if(!ph||!scr||!v||!tile){ finish(); return; }
+      if(!ph||!scr||!stage||!v||!tile){ finish(); return; }
       const fit=()=>{
         const h=ph.offsetHeight,w=ph.offsetWidth;
         if(!h||!w)return;
         ph.style.setProperty('--phs',Math.min(1,(innerWidth*.94)/h,(innerHeight*.9)/w).toFixed(3));
-        // the frame is rotated 90°, so the video is rotated -90° back upright —
+        // the frame is rotated 90°, so the stage is rotated -90° back upright —
         // which means its width/height swap relative to the screen cut-out
         const sw=scr.offsetWidth,sh=scr.offsetHeight;
-        if(sw&&sh){ v.style.width=sh+'px'; v.style.height=sw+'px'; }
+        if(sw&&sh){ stage.style.width=sh+'px'; stage.style.height=sw+'px'; }
       };
       fit(); addEventListener('resize',fit);
       ph.classList.add('landscape');
       v.src=tile.dataset.src;
-      scr.addEventListener('click',()=>{
+      // tapping the picture opens the film full size — but not the sound pill
+      scr.addEventListener('click',(e)=>{
+        if(e&&e.target&&e.target.closest&&e.target.closest('#phSound'))return;
         if(window.openLB)window.openLB(tile.dataset.src,tile.dataset.label);
       });
+      // sound sits under the picture, off to start so the film can autoplay
+      if(snd){
+        const lbl=snd.querySelector('.ps-lbl');
+        const sync=()=>{
+          snd.setAttribute('aria-pressed', v.muted?'false':'true');
+          snd.setAttribute('aria-label', v.muted?'Turn sound on':'Turn sound off');
+          if(lbl)lbl.textContent = v.muted?'Sound on':'Sound off';
+        };
+        snd.addEventListener('click',(e)=>{
+          e.preventDefault(); e.stopPropagation();
+          v.muted=!v.muted;
+          if(!v.muted){ v.volume=1; v.play().catch(()=>{}); }
+          sync();
+        });
+        sync();
+      }
       let ended=false;
       const off=()=>{
         if(ended)return; ended=true;
         try{v.pause()}catch(e){}
         ph.classList.remove('filming');
         setTimeout(()=>{
+          // the frame turns back upright and the conversation picks up again
           ph.classList.remove('landscape');
           removeEventListener('resize',fit);
-          setTimeout(finish,700);
+          setTimeout(()=>{ stage.style.width=''; stage.style.height=''; },900);
+          setTimeout(afterFilm,900);
         },520);
       };
       setTimeout(()=>{
@@ -2527,8 +2603,38 @@
         v.muted=true; v.play().catch(()=>{});
         v.addEventListener('ended',off,{once:true});
         v.addEventListener('error',()=>setTimeout(off,600),{once:true});
-        setTimeout(off,15000);   // a taste — the full film plays below
+        setTimeout(off,90000);   // safety net only — the film runs its full length
       },1000);
+    };
+    // the frame is upright again: they answer, then we sign off and hand over
+    const afterFilm=()=>{
+      if(!C){ finish(); return; }
+      const wrap=document.querySelector('.chat-wrap');
+      const r2=document.getElementById('replyBubble2');
+      // flex-end overflow is unreachable by scroll, so measure the first
+      // message directly: if its top sits above the frame, soften the cut
+      const remask=()=>{
+        if(!wrap)return;
+        wrap.classList.add('deep');
+        requestAnimationFrame(()=>{
+          const f=wrap.firstElementChild;
+          const cut=f?(wrap.getBoundingClientRect().top-f.getBoundingClientRect().top):0;
+          wrap.classList.toggle('masked', cut>8);
+        });
+      };
+      remask();
+      if(!r2){ box3.classList.add('in'); remask();
+        setTimeout(()=>type(box3,C,()=>setTimeout(finish,1400)),480); return; }
+      setTimeout(()=>{
+        r2.classList.add('on'); remask();
+        setTimeout(()=>{
+          r2.classList.add('said'); remask();
+          setTimeout(()=>{
+            box3.classList.add('in'); remask();
+            setTimeout(()=>type(box3,C,()=>{ remask(); setTimeout(finish,1400); }),480);
+          },1000);
+        },1600);
+      },700);
     };
     // second blue message answers the callout, then hands off to the film below
     const secondLine=()=>{
