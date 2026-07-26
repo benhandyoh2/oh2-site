@@ -50,8 +50,9 @@
   nav{
     position:fixed;top:0;left:0;right:0;z-index:100;
     display:flex;justify-content:space-between;align-items:center;
-    padding:28px 40px;
+    padding:28px 40px;pointer-events:none;
   }
+  nav a{pointer-events:auto}
   .wordmark{
     font-weight:500;font-size:20px;letter-spacing:.02em;color:#fff;
     text-decoration:none;display:flex;align-items:baseline;gap:1px;
@@ -980,6 +981,12 @@
   .conn-star line{stroke:rgba(233,232,228,.4);stroke-width:1;stroke-dasharray:2 4;
     opacity:0;transition:opacity .45s ease}
   .conn-star line.on{opacity:1}
+  .conn-star .cs-pill{pointer-events:auto;cursor:pointer}
+  .cs-pill.lit{
+    background:rgba(233,232,228,.16);border-color:rgba(255,255,255,.7);color:#fff;
+    box-shadow:0 0 30px rgba(255,255,255,.38),0 0 90px rgba(150,180,255,.32),
+      0 14px 40px rgba(0,0,0,.26);
+  }
   .cs-pill{
     position:absolute;white-space:nowrap;
     font-family:'Inter',var(--sans);font-weight:400;
@@ -2167,7 +2174,7 @@
         let y=cy+Math.sin(ang)*rad*0.82;
         // keep clear of the wide Connection pill on near-horizontal spokes
         if(Math.abs(y-cy)<78 && Math.abs(x-cx)<315) x=cx+Math.sign(x-cx||1)*315;
-        x=Math.min(W-84,Math.max(84,x)); y=Math.min(H-46,Math.max(52,y));
+        x=Math.min(W-84,Math.max(84,x)); y=Math.min(H-46,Math.max(104,y));
         const line=document.createElementNS('http://www.w3.org/2000/svg','line');
         line.setAttribute('x1',cx);line.setAttribute('y1',cy);
         line.setAttribute('x2',x);line.setAttribute('y2',y);
@@ -2177,14 +2184,56 @@
         p.style.left=x+'px';p.style.top=y+'px';
         p.style.transform=`translate(-50%,-50%) translate(${(cx-x)*0.92}px,${(cy-y)*0.92}px) scale(.25)`;
         star.appendChild(p);
+        const node={el:p,line,hx:x,hy:y,ox:0,oy:0,s:1,ts:1,_infl:0,lit:false};
+        p.addEventListener('click',()=>{
+          node.lit=!node.lit;
+          p.classList.toggle('lit',node.lit);
+          node.ts=node.lit?1.42:1;
+        });
+        starNodes.push(node);
         setTimeout(()=>{
           p.classList.add('on');
           p.style.transform='translate(-50%,-50%) scale(1)';
           setTimeout(()=>line.classList.add('on'),240);
         },260+i*95);
       });
+      // once everyone has landed, hand transforms to the magnet loop
+      setTimeout(()=>{
+        starNodes.forEach(nd=>{nd.el.style.transition=
+          'opacity .3s ease,background .35s ease,border-color .35s ease,box-shadow .35s ease,color .35s ease';});
+        starMagnet(hero,cx,cy);
+      },260+n*95+620);
       // hold the full constellation, then hand over to the finale
       setTimeout(finale, 260+n*95+2600);
+    };
+    const starNodes=[];
+    const starMagnet=(hero)=>{
+      const m={x:null,y:null,active:false};
+      hero.addEventListener('pointermove',e=>{
+        const r=hero.getBoundingClientRect();
+        m.x=e.clientX-r.left; m.y=e.clientY-r.top; m.active=true;
+      });
+      hero.addEventListener('pointerleave',()=>{m.active=false;});
+      const R=250,K=0.5;
+      const loop=()=>{
+        starNodes.forEach(nd=>{
+          let tx=0,ty=0;
+          if(m.active&&m.x!=null){
+            const d=Math.hypot(m.x-nd.hx,m.y-nd.hy);
+            const t=(d<R)?Math.pow(1-d/R,1.6):0;
+            nd._infl+=(t-nd._infl)*0.12;
+            if(nd._infl>0.001){tx=(m.x-nd.hx)*nd._infl*K;ty=(m.y-nd.hy)*nd._infl*K;}
+          }else{nd._infl*=0.9;}
+          nd.ox+=(tx-nd.ox)*0.18; nd.oy+=(ty-nd.oy)*0.18;
+          nd.s+=(nd.ts-nd.s)*0.16;
+          nd.el.style.transform=
+            `translate(-50%,-50%) translate(${nd.ox.toFixed(1)}px,${nd.oy.toFixed(1)}px) scale(${nd.s.toFixed(3)})`;
+          nd.line.setAttribute('x2',(nd.hx+nd.ox).toFixed(1));
+          nd.line.setAttribute('y2',(nd.hy+nd.oy).toFixed(1));
+        });
+        requestAnimationFrame(loop);
+      };
+      requestAnimationFrame(loop);
     };
     // ---- guided auto-tour ----
     // Glides anchor to anchor down the page. ANY visitor interaction —
@@ -2270,6 +2319,7 @@
       go(0);
     };
     const finale=()=>{
+      if(tourStop)return;   // visitor is playing — leave the constellation up
       const cyc=document.getElementById('connCycle');
       const choice=document.getElementById('connChoice');
       const star=document.getElementById('connStar');
