@@ -1058,10 +1058,33 @@
     letter-spacing:-.022em;max-width:20ch;color:var(--ink);margin:0;
   }
   .thesis-big .dim{color:var(--ink-dim)}
-  /* thesis — a little chat exchange */
+  /* thesis — a little chat exchange, inside a phone outline */
+  .phone{
+    position:relative;box-sizing:border-box;
+    height:80svh;width:calc(80svh * .468);max-width:90vw;
+    margin:0 auto;padding:9.5svh 4.4% 0;
+    border:1px solid rgba(255,255,255,.5);
+    border-radius:min(6.2svh,54px);
+    display:flex;flex-direction:column;
+    opacity:0;transform:translateY(22px);
+    transition:opacity 1.1s cubic-bezier(.2,.6,.2,1),transform 1.1s cubic-bezier(.2,.6,.2,1);
+  }
+  .phone.in{opacity:1;transform:none}
+  .ph-speaker{
+    position:absolute;top:3.2svh;left:50%;transform:translateX(-50%);
+    width:23%;height:5px;border-radius:3px;border:1px solid rgba(255,255,255,.42);
+  }
+  .ph-cam{
+    position:absolute;top:3.1svh;left:66%;
+    width:9px;height:9px;border-radius:50%;border:1px solid rgba(255,255,255,.42);
+  }
+  .ph-home{
+    position:absolute;bottom:1.9svh;left:50%;transform:translateX(-50%);
+    width:34%;height:4px;border-radius:2px;background:rgba(255,255,255,.42);
+  }
   .chat-wrap{
     display:flex;flex-direction:column;align-items:stretch;gap:10px;
-    width:min(390px,90vw);max-width:min(390px,90vw);margin:30px auto 0;
+    width:100%;max-width:100%;margin:auto 0 9svh;
   }
   .thesis-box{
     align-self:flex-start;box-sizing:border-box;max-width:86%;
@@ -1277,12 +1300,17 @@
 
 <section class="thesis-sec" id="thesis">
   <div class="mod r"><span>MOD 01/05</span><span>THE THESIS</span></div>
-  <div class="chat-wrap">
+  <div class="phone" id="phone">
+    <span class="ph-speaker" aria-hidden="true"></span>
+    <span class="ph-cam" aria-hidden="true"></span>
+    <div class="chat-wrap">
     <div class="thesis-box" id="thesisBox"><span class="tt-txt" id="ttTxt"></span></div>
     <div class="reply-bubble" id="replyBubble">
       <span class="rb-dots"><i></i><i></i><i></i></span>
       <span class="rb-text">what? you just made that stat up!</span>
     </div>
+    </div>
+    <span class="ph-home" aria-hidden="true"></span>
   </div>
 </section>
 
@@ -1291,6 +1319,9 @@
   <div id="tile-ad4" data-src="ad-roadside.mp4" data-label="AD_4 — 00:23 — SOUND ON"></div>
   <div id="tile-road" data-src="road-again.mp4" data-label="SOCIAL — ROAD AGAIN — 00:20 — SOUND ON"></div>
   <div id="tile-forager" data-src="forager-film.mp4" data-label="GLOBAL FORAGERS — FILM — 00:30 — SOUND ON"></div>
+  <div id="tile-exoout" data-src="exo-social-outsider.mp4" data-label="EXO LOUVRES — SOCIAL — &ldquo;OUTSIDER&rdquo; — 00:10 — SOUND ON"></div>
+  <div id="tile-exolaugh" data-src="exo-social-laugh-at.mp4" data-label="EXO LOUVRES — SOCIAL — &ldquo;LAUGH AT&rdquo; — 00:10 — SOUND ON"></div>
+  <div id="tile-exofore" data-src="exo-social-forecasters.mp4" data-label="EXO LOUVRES — SOCIAL — &ldquo;IGNORE FORECASTERS&rdquo; — 00:10 — SOUND ON"></div>
   <div id="tile-social15" data-src="foragers-social-15.mp4" data-label="GLOBAL FORAGERS — SOCIAL 15 — SOUND ON"></div>
   <div id="tile-social1" data-src="foragers-social-15-1.mp4" data-label="GLOBAL FORAGERS — SOCIAL 15-1 — SOUND ON"></div>
   <div id="tile-pos" data-kind="image" data-src="foragers-pos.jpg" data-label="GLOBAL FORAGERS — POS / IN-STORE"></div>
@@ -1438,7 +1469,7 @@
   <div class="feat-veil"></div>
   <div class="fchips">
     <svg class="net fnet" aria-hidden="true">
-      <line class="tri"/><line class="tri"/><line class="tri"/>
+      <line class="tri"/><line class="tri"/><line class="tri"/><line class="tri"/><line class="tri"/>
       <line class="pos-link"/><line class="pos-link"/><line class="pos-link"/><line class="pos-link"/>
     </svg>
     <div class="fdrifter att-bottom" data-cx=".28" data-cy=".40" data-ax="36" data-ay="22" data-wx=".06" data-wy=".09" data-ph="3.0">
@@ -1457,8 +1488,22 @@
       </div>
     </div>
     <div class="fdrifter att-bottom" data-cx=".20" data-cy=".18" data-ax="40" data-ay="24" data-wx=".08" data-wy=".05" data-ph="1.1">
-      <span class="chip fchip slotchip"><span>SOCIAL</span></span>
-      <div class="node"><div class="node-card fnode-card"><span class="nc-title">SOCIAL</span><span class="nc-dim">SOON</span></div><span class="node-line"></span></div>
+      <button class="chip fchip" data-tile="tile-exoout" data-label="SOCIAL &mdash; &ldquo;OUTSIDER&rdquo; &mdash; 00:10 &mdash; SOUND ON" aria-label="Play Outsider social spot">
+        <video muted loop playsinline autoplay src="chip-exo-outsider.webm"></video>
+      </button>
+      <div class="node"><div class="node-card fnode-card"><span class="nc-title">SOCIAL &mdash; &ldquo;OUTSIDER&rdquo;</span><span class="nc-dim">00:10 &middot; SOCIAL AD</span></div><span class="node-line"></span></div>
+    </div>
+    <div class="fdrifter att-bottom" data-cx=".45" data-cy=".19" data-ax="36" data-ay="22" data-wx=".09" data-wy=".06" data-ph="2.4">
+      <button class="chip fchip" data-tile="tile-exolaugh" data-label="SOCIAL &mdash; &ldquo;LAUGH AT&rdquo; &mdash; 00:10 &mdash; SOUND ON" aria-label="Play Laugh At social spot">
+        <video muted loop playsinline autoplay src="chip-exo-laugh-at.webm"></video>
+      </button>
+      <div class="node"><div class="node-card fnode-card"><span class="nc-title">SOCIAL &mdash; &ldquo;LAUGH AT&rdquo;</span><span class="nc-dim">00:10 &middot; SOCIAL AD</span></div><span class="node-line"></span></div>
+    </div>
+    <div class="fdrifter att-bottom" data-cx=".60" data-cy=".22" data-ax="38" data-ay="25" data-wx=".07" data-wy=".10" data-ph="4.2">
+      <button class="chip fchip" data-tile="tile-exofore" data-label="SOCIAL &mdash; &ldquo;IGNORE FORECASTERS&rdquo; &mdash; 00:10 &mdash; SOUND ON" aria-label="Play Ignore Forecasters social spot">
+        <video muted loop playsinline autoplay src="chip-exo-forecasters.webm"></video>
+      </button>
+      <div class="node"><div class="node-card fnode-card"><span class="nc-title">SOCIAL &mdash; &ldquo;FORECASTERS&rdquo;</span><span class="nc-dim">00:10 &middot; SOCIAL AD</span></div><span class="node-line"></span></div>
     </div>
     <div class="fdrifter att-bottom" data-cx=".69" data-cy=".42" data-ax="38" data-ay="26" data-wx=".07" data-wy=".11" data-ph="5.1">
       <span class="chip fchip slotchip"><span>WEB</span></span>
@@ -2437,8 +2482,10 @@
     };
     const io=new IntersectionObserver(es=>es.forEach(e=>{
       if(e.isIntersecting && !started){
-        started=true; box.classList.add('in');
-        setTimeout(type,550); io.disconnect();
+        started=true;
+        const ph=document.getElementById('phone'); if(ph)ph.classList.add('in');
+        setTimeout(()=>box.classList.add('in'),650);
+        setTimeout(type,1150); io.disconnect();
       }
     }),{threshold:.35});
     io.observe(box);
