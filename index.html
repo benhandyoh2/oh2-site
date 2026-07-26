@@ -879,19 +879,20 @@
   /* ---------- intro load sequence ---------- */
   #intro{
     position:fixed;inset:0;z-index:2000;
-    background:
-      linear-gradient(90deg, rgba(16,14,18,.55), transparent 7%),
-      radial-gradient(80% 55% at 77% -8%, rgba(178,188,132,.70), transparent 60%),
-      radial-gradient(60% 45% at 58% 8%, rgba(120,145,120,.45), transparent 65%),
-      radial-gradient(46% 70% at 2% 62%, rgba(140,60,80,.62), transparent 70%),
-      radial-gradient(40% 55% at 10% 26%, rgba(125,90,105,.5), transparent 68%),
-      radial-gradient(52% 75% at 102% 50%, rgba(45,62,130,.68), transparent 68%),
-      radial-gradient(42% 50% at 97% 6%, rgba(100,115,155,.4), transparent 68%),
-      radial-gradient(50% 55% at 68% 42%, rgba(62,80,72,.35), transparent 70%),
-      radial-gradient(90% 55% at 45% 112%, rgba(22,18,30,.95), transparent 74%),
-      linear-gradient(180deg,#625e6b 0%,#524d58 38%,#413d49 68%,#332c3e 100%);
     transition:opacity .6s ease;
   }
+  /* dark room. the phone keyline is already sitting there behind it. */
+  .intro-bg{
+    position:absolute;inset:0;
+    background:
+      radial-gradient(66% 46% at 50% 34%, rgba(120,145,120,.13), transparent 70%),
+      radial-gradient(58% 58% at 84% 96%, rgba(45,62,130,.16), transparent 72%),
+      radial-gradient(46% 46% at 8% 84%, rgba(125,90,105,.12), transparent 72%),
+      var(--bg);
+    transition:opacity 1s ease;
+  }
+  #intro.fadeout{pointer-events:none}
+  #intro.fadeout .intro-bg{opacity:0}
   #intro.done{opacity:0;pointer-events:none}
   .intro-block{
     position:absolute;left:50%;top:50%;
@@ -1048,6 +1049,17 @@
     .conn-choice{flex-direction:column;gap:12px;left:50%;transform:translate(-50%,-50%);width:min(86vw,320px)}
     .ch-btn{width:100%}
   }
+  .top-sec{
+    border-top:none;padding:96px 40px 56px;
+    min-height:100svh;box-sizing:border-box;
+    display:flex;flex-direction:column;justify-content:center;
+  }
+  .top-sec .mod{margin-bottom:30px}
+  @media(max-width:700px){
+    .top-sec{padding:88px 22px 44px}
+    .phone{--ph-h:70svh}
+    .pb-line{font-size:10px;letter-spacing:.14em}
+  }
   .thesis-sec{
     background:
       radial-gradient(50% 90% at 12% 0%, rgba(120,145,120,.16), transparent 66%),
@@ -1060,39 +1072,101 @@
   .thesis-big .dim{color:var(--ink-dim)}
   /* thesis — a little chat exchange, inside a phone outline */
   .phone{
+    --ph-h:72svh;
     position:relative;box-sizing:border-box;
-    height:80svh;width:calc(80svh * .468);max-width:90vw;
-    margin:0 auto;padding:9.5svh 4.4% 0;
+    height:var(--ph-h);width:calc(var(--ph-h) * .468);max-width:90vw;
+    margin:0 auto;padding:calc(var(--ph-h) * .119) 4.4% 0;
     border:1px solid rgba(255,255,255,.5);
-    border-radius:min(6.2svh,54px);
+    border-radius:min(5.6svh,54px);
     display:flex;flex-direction:column;
     opacity:0;transform:translateY(22px);
     transition:opacity 1.1s cubic-bezier(.2,.6,.2,1),transform 1.1s cubic-bezier(.2,.6,.2,1);
   }
   .phone.in{opacity:1;transform:none}
+  /* the screen wakes: a soft wash comes up inside the keyline */
+  .phone::after{
+    content:'';position:absolute;inset:11.9% 4.4% 8.1%;
+    border-radius:12px;pointer-events:none;z-index:0;
+    background:
+      radial-gradient(120% 78% at 50% 40%, rgba(233,232,228,.075), transparent 72%),
+      radial-gradient(90% 60% at 50% 108%, rgba(120,145,120,.09), transparent 70%);
+    opacity:0;transition:opacity 1.2s ease;
+  }
+  .phone.awake::after{opacity:1;animation:phwake 1.5s cubic-bezier(.2,.7,.2,1)}
+  @keyframes phwake{0%{opacity:0}9%{opacity:1}26%{opacity:.35}100%{opacity:1}}
   /* the frame turns on its side to play the film */
   .phone.landscape{transform:rotate(90deg) scale(var(--phs,1))}
   .ph-screen{
-    position:absolute;inset:9.5svh 4.4% 6.5svh;
+    position:absolute;inset:11.9% 4.4% 8.1%;z-index:3;
     border-radius:10px;overflow:hidden;background:#000;
     display:flex;align-items:center;justify-content:center;
     opacity:0;pointer-events:none;transition:opacity .55s ease;
   }
   .phone.filming .ph-screen{opacity:1;pointer-events:auto;cursor:pointer}
   .ph-screen video{width:100%;height:100%;object-fit:contain;display:block}
+  /* the frame is rotated, so the picture is counter-rotated to sit upright */
+  .phone.landscape .ph-screen video{
+    position:absolute;left:50%;top:50%;
+    transform:translate(-50%,-50%) rotate(-90deg);
+  }
+
+  /* ---------- the phone boots and finds you ---------- */
+  .ph-boot{
+    position:absolute;inset:11.9% 4.4% 8.1%;z-index:2;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    gap:22px;padding:16px 0;box-sizing:border-box;overflow:hidden;
+    opacity:0;pointer-events:none;transition:opacity .7s ease;
+  }
+  .phone.booting .ph-boot{opacity:1}
+  .pb-sig{
+    flex:0 0 auto;width:78px;height:64px;
+    transition:width .9s cubic-bezier(.5,0,.2,1),height .9s cubic-bezier(.5,0,.2,1),opacity .6s ease;
+  }
+  .ph-boot.listing .pb-sig{width:30px;height:25px;opacity:.55}
+  .pb-sig svg{width:100%;height:100%;display:block;overflow:visible}
+  .pb-sig path{fill:none;stroke:var(--ink);stroke-width:3;stroke-linecap:round;
+    opacity:.13;transition:opacity .3s ease}
+  .pb-sig path.lit{opacity:1}
+  .pb-sig circle{fill:var(--ink);opacity:.3;transition:opacity .3s ease}
+  .pb-sig.done circle{opacity:1}
+  .pb-feed{
+    flex:0 1 auto;min-height:0;max-height:58%;width:100%;
+    display:flex;flex-direction:column;align-items:center;justify-content:flex-end;
+    gap:7px;padding:0 8%;box-sizing:border-box;overflow:hidden;text-align:center;
+    -webkit-mask-image:linear-gradient(to bottom,transparent,#000 20%);
+    mask-image:linear-gradient(to bottom,transparent,#000 20%);
+  }
+  .pb-line{
+    font-family:var(--mono);font-size:11px;letter-spacing:.18em;
+    text-transform:uppercase;color:var(--ink-faint);white-space:nowrap;
+    opacity:0;transform:translateY(7px);
+    transition:opacity .45s ease,transform .45s cubic-bezier(.2,.7,.2,1);
+  }
+  .pb-line.on{opacity:1;transform:none}
+  .pb-line.hi{color:var(--ink)}
+  .pb-line.ok{color:var(--glow)}
+  .pb-line.word{color:var(--ink);letter-spacing:.1em;font-size:12px}
+  .pb-line.note{
+    font-family:'Inter',var(--sans);text-transform:none;letter-spacing:-.01em;
+    font-size:13px;color:var(--ink-dim);margin-top:6px;
+  }
+  .pb-dots i{font-style:normal;opacity:.2;animation:ccdot 1.35s infinite}
+  .pb-dots i:nth-child(2){animation-delay:.22s}
+  .pb-dots i:nth-child(3){animation-delay:.44s}
   .ph-speaker{
-    position:absolute;top:3.2svh;left:50%;transform:translateX(-50%);
+    position:absolute;top:4%;left:50%;transform:translateX(-50%);
     width:23%;height:5px;border-radius:3px;border:1px solid rgba(255,255,255,.42);
   }
   .ph-cam{
-    position:absolute;top:3.1svh;left:66%;
+    position:absolute;top:3.9%;left:66%;
     width:9px;height:9px;border-radius:50%;border:1px solid rgba(255,255,255,.42);
   }
   .ph-home{
-    position:absolute;bottom:1.9svh;left:50%;transform:translateX(-50%);
+    position:absolute;bottom:2.4%;left:50%;transform:translateX(-50%);
     width:34%;height:4px;border-radius:2px;background:rgba(255,255,255,.42);
   }
   .chat-wrap{
+    position:relative;z-index:1;
     display:flex;flex-direction:column;align-items:stretch;gap:10px;
     width:100%;max-width:100%;margin:auto 0;
   }
@@ -1208,6 +1282,8 @@
 
   @media(max-width:700px){
     nav{padding:20px 22px}
+    /* the flying logo has to land exactly on the nav wordmark */
+    .intro-block.rest{left:22px;top:35px}
     section{padding:80px 22px}
     .hero-copy{left:22px;right:22px;bottom:32px;flex-direction:column;align-items:flex-start;gap:26px}
     .hero-meta{text-align:left}
@@ -1272,6 +1348,7 @@
 <div class="grain"></div>
 
 <div id="intro">
+  <div class="intro-bg" aria-hidden="true"></div>
   <div class="intro-block" id="introBlock">
     <div class="intro-logo">
       <img class="il il-o" src="logo-o.png" alt="">
@@ -1290,29 +1367,25 @@
   </ul>
 </nav>
 
-<header class="hero-wrap" id="top">
-  <div class="hero">
-    <div class="hero-grad"></div>
-    <div class="veil"></div>
-    <div class="hero-words">
-      <div class="conn-star" id="connStar" aria-hidden="true"><svg id="csLines"></svg></div>
-      <div class="conn-cycle" id="connCycle">
-        <span class="cc-lead" id="ccLead">Establishing connection<span class="cc-dots"><i>.</i><i>.</i><i>.</i></span></span>
-        <span class="cc-rest" id="ccRest"><span class="cc-creates">creates</span><span class="cc-rot"><span class="cc-word" id="ccWord">belonging</span></span></span>
-      </div>
-      <div class="conn-choice" id="connChoice">
-        <div class="ch-note">Let us drive, you relax.</div>
-      </div>
-    </div>
-      </div>
-</header>
+<span id="top" aria-hidden="true"></span>
 <div class="progress" id="progress"></div>
 
-<section class="thesis-sec" id="thesis">
+<section class="thesis-sec top-sec" id="thesis">
   <div class="mod r"><span>MOD 01/05</span><span>THE THESIS</span></div>
   <div class="phone" id="phone">
     <span class="ph-speaker" aria-hidden="true"></span>
     <span class="ph-cam" aria-hidden="true"></span>
+    <div class="ph-boot" id="phBoot" aria-hidden="true">
+      <div class="pb-sig" id="pbSig">
+        <svg viewBox="0 0 64 52">
+          <path class="a3" d="M3 17.5C11.3 8.6 21.2 4 32 4s20.7 4.6 29 13.5"/>
+          <path class="a2" d="M13 28.6c5.6-6.2 12-9.6 19-9.6s13.4 3.4 19 9.6"/>
+          <path class="a1" d="M22.6 39.4c2.9-3.4 6.2-5.4 9.4-5.4s6.5 2 9.4 5.4"/>
+          <circle cx="32" cy="46.8" r="3.5"/>
+        </svg>
+      </div>
+      <div class="pb-feed" id="pbFeed"></div>
+    </div>
     <div class="chat-wrap">
     <div class="thesis-box" id="thesisBox"><span class="tt-txt" id="ttTxt"></span></div>
     <div class="reply-bubble" id="replyBubble">
@@ -1729,14 +1802,19 @@
     setTimeout(()=>document.querySelector('.il-2').classList.add('on'), 940);
     // sit for 3s once complete, then glide up to the top-left
     setTimeout(()=>{
+      // the logo starts its run to the corner and the backdrop drops away
+      // underneath it, so the phone keyline is already there when it lands
       block.classList.add('rest');
+      intro.classList.add('fadeout');
       setTimeout(()=>{
-        intro.classList.add('done');
         document.body.style.overflow='';
         document.body.classList.add('arrived');
-        setTimeout(()=>{window.placeHwLine&&window.placeHwLine();window.rebuildNet&&window.rebuildNet()},1600);
+      },260);
+      setTimeout(()=>{
+        intro.classList.add('done');
+        setTimeout(()=>{window.placeHwLine&&window.placeHwLine();window.rebuildNet&&window.rebuildNet()},1200);
         setTimeout(()=>intro.remove(),700);
-      },800);
+      },1000);
     }, 940+500+1400);
   })();
 
@@ -2219,105 +2297,56 @@
     wait();
   })();
 
-  // CONNECTION CREATES ___ — rotating outcome words
+  // ---- the phone wakes, finds you, and lists what connection creates ----
+  const CONN_WORDS=['belonging','commitment','trust','relationship','transaction',
+    'affinity','relevance','community','likeness','partnership','happiness',
+    'followers','attachment','momentum','motivation'];
   (function(){
-    const el=document.getElementById('ccWord');
-    if(!el)return;
-    const words=['belonging','commitment','trust','relationship','transaction',
-      'affinity','relevance','community','likeness','partnership','happiness',
-      'followers','attachment','momentum','motivation'];
-    // starfish: every outcome shoots out of the Connection box in its own
-    // container, stays tethered by a line, all landing in quick succession
-    const startStarfish=()=>{
-      const hero=document.querySelector('.hero');
-      const star=document.getElementById('connStar');
-      const svg=document.getElementById('csLines');
-      if(!hero||!star||!svg)return;
-      const W=hero.clientWidth,H=hero.clientHeight;
-      const cx=W/2, cy=H*0.44;
-      const n=words.length;
-      const base=Math.min(W,H);
-      words.forEach((w,i)=>{
-        const ang=(i/n)*Math.PI*2 - Math.PI/2 + (i%2?0.10:-0.10);
-        const rad=base*(i%3===0?0.47:(i%3===1?0.30:0.385));
-        let x=cx+Math.cos(ang)*rad*(W>H?1.5:1);
-        let y=cy+Math.sin(ang)*rad*0.82;
-        // keep clear of the wide Connection pill on near-horizontal spokes
-        if(Math.abs(y-cy)<78 && Math.abs(x-cx)<315) x=cx+Math.sign(x-cx||1)*315;
-        x=Math.min(W-84,Math.max(84,x)); y=Math.min(H-46,Math.max(104,y));
-        const line=document.createElementNS('http://www.w3.org/2000/svg','line');
-        line.setAttribute('x1',cx);line.setAttribute('y1',cy);
-        line.setAttribute('x2',x);line.setAttribute('y2',y);
-        svg.appendChild(line);
-        const p=document.createElement('div');
-        p.className='cs-pill';p.textContent=w;
-        p.style.left=x+'px';p.style.top=y+'px';
-        p.style.transform=`translate(-50%,-50%) translate(${(cx-x)*0.92}px,${(cy-y)*0.92}px) scale(.25)`;
-        star.appendChild(p);
-        const node={el:p,line,hx:x,hy:y,ox:0,oy:0,s:1,ts:1,_infl:0,lit:false};
-        p.addEventListener('click',()=>{
-          node.lit=!node.lit;
-          p.classList.toggle('lit',node.lit);
-          node.ts=node.lit?1.42:1;
-        });
-        starNodes.push(node);
-        setTimeout(()=>{
-          p.classList.add('on');
-          p.style.transform='translate(-50%,-50%) scale(1)';
-          setTimeout(()=>line.classList.add('on'),170);
-        },150+i*58);
-      });
-      // once everyone has landed, hand transforms to the magnet loop
-      setTimeout(()=>{
-        starNodes.forEach(nd=>{nd.el.style.transition=
-          'opacity .3s ease,background .2s ease,border-color .2s ease,box-shadow .2s ease,color .2s ease';});
-        starMagnet(hero,cx,cy);
-        // clockwise preview — each node glows & zooms in turn (~10s sweep)
-        const ordered=[...starNodes].sort((a,b)=>{
-          const aa=(Math.atan2(a.hy-cy,a.hx-cx)+Math.PI/2+Math.PI*2)%(Math.PI*2);
-          const bb=(Math.atan2(b.hy-cy,b.hx-cx)+Math.PI/2+Math.PI*2)%(Math.PI*2);
-          return aa-bb;});
-        ordered.forEach((nd,k)=>{
-          setTimeout(()=>{
-            if(nd.lit)return;               // visitor already lit this one
-            nd.el.classList.add('lit'); nd.ts=1.42;
-            setTimeout(()=>{ if(!nd.lit){nd.el.classList.remove('lit'); nd.ts=1;} },300);
-          },200+k*230);
-        });
-      },150+n*58+500);
-      // after the sweep: hand off to the thesis line below
-      const sweepEnd=150+n*58+500+200+n*230+520;
-      setTimeout(finale, sweepEnd+900);
+    const ph=document.getElementById('phone');
+    const boot=document.getElementById('phBoot');
+    const feed=document.getElementById('pbFeed');
+    const sig=document.getElementById('pbSig');
+    const done=()=>{ window.__phoneBooted=true; dispatchEvent(new Event('phone-booted')); };
+    if(!ph||!boot||!feed){ done(); return; }
+    const arcs=['.a1','.a2','.a3'].map(c=>sig&&sig.querySelector(c)).filter(Boolean);
+    let scan=null;
+    const startScan=()=>{ let k=0; scan=setInterval(()=>{
+      k=(k+1)%(arcs.length+1);
+      arcs.forEach((a,n)=>a.classList.toggle('lit',n<k));
+    },360); };
+    const lockOn=()=>{ clearInterval(scan);
+      arcs.forEach(a=>a.classList.add('lit'));
+      if(sig)sig.classList.add('done'); };
+    const line=(html,cls)=>{
+      const d=document.createElement('div');
+      d.className='pb-line'+(cls?' '+cls:'');
+      d.innerHTML=html; feed.appendChild(d);
+      requestAnimationFrame(()=>d.classList.add('on'));
+      while(feed.children.length>16) feed.removeChild(feed.firstChild);
     };
-    const starNodes=[];
-    const starMagnet=(hero)=>{
-      const m={x:null,y:null,active:false};
-      hero.addEventListener('pointermove',e=>{
-        const r=hero.getBoundingClientRect();
-        m.x=e.clientX-r.left; m.y=e.clientY-r.top; m.active=true;
+    const DOTS='<span class="pb-dots"><i>.</i><i>.</i><i>.</i></span>';
+    const at=(ms,fn)=>setTimeout(fn,ms);
+    const run=()=>{
+      if(!document.body.classList.contains('arrived')){ setTimeout(run,150); return; }
+      ph.classList.add('in');                                  // keyline settles
+      at(700,()=>{ ph.classList.add('awake','booting'); startScan(); });
+      at(1500,()=>line('Establishing connection'+DOTS,'hi'));
+      at(3100,()=>line('Searching for you'+DOTS));
+      at(4500,()=>{ lockOn(); line('Connected.','ok'); });
+      at(5700,()=>{ boot.classList.add('listing');
+        line('Connection creates'+DOTS,'hi'); });
+      CONN_WORDS.forEach((w,i)=>at(6500+i*210,()=>line(w,'word')));
+      const end=6500+CONN_WORDS.length*210+700;
+      at(end,()=>line('Let us drive, you relax.','note'));
+      at(end+2000,()=>{
+        ph.classList.remove('booting');
+        setTimeout(()=>{ boot.remove(); done(); },760);
       });
-      hero.addEventListener('pointerleave',()=>{m.active=false;});
-      const R=250,K=0.5;
-      const loop=()=>{
-        starNodes.forEach(nd=>{
-          let tx=0,ty=0;
-          if(m.active&&m.x!=null){
-            const d=Math.hypot(m.x-nd.hx,m.y-nd.hy);
-            const t=(d<R)?Math.pow(1-d/R,1.6):0;
-            nd._infl+=(t-nd._infl)*0.12;
-            if(nd._infl>0.001){tx=(m.x-nd.hx)*nd._infl*K;ty=(m.y-nd.hy)*nd._infl*K;}
-          }else{nd._infl*=0.9;}
-          nd.ox+=(tx-nd.ox)*0.18; nd.oy+=(ty-nd.oy)*0.18;
-          nd.s+=(nd.ts-nd.s)*0.30;
-          nd.el.style.transform=
-            `translate(-50%,-50%) translate(${nd.ox.toFixed(1)}px,${nd.oy.toFixed(1)}px) scale(${nd.s.toFixed(3)})`;
-          nd.line.setAttribute('x2',(nd.hx+nd.ox).toFixed(1));
-          nd.line.setAttribute('y2',(nd.hy+nd.oy).toFixed(1));
-        });
-        requestAnimationFrame(loop);
-      };
-      requestAnimationFrame(loop);
     };
+    run();
+  })();
+
+  (function(){
     // ---- guided auto-tour ----
     // Glides anchor to anchor down the page. ANY visitor interaction —
     // scrolling, clicking a preview / WATCH MORE, touching, keys — cancels
@@ -2401,50 +2430,13 @@
       };
       go(0);
     };
-    const finale=()=>{
-      if(tourStop)return;   // visitor is playing — leave the constellation up
-      const cyc=document.getElementById('connCycle');
-      const choice=document.getElementById('connChoice');
-      const star=document.getElementById('connStar');
-      if(star)star.style.opacity=0;
-      setTimeout(()=>{
-        // fade the cycler box out, then offer the wheel to the visitor
-        cyc.style.transition='opacity .45s ease';
-        cyc.style.opacity=0;
-        setTimeout(()=>{
-          cyc.style.display='none';
-          if(tourStop||scrollY>120)return;   // visitor already took over
-          choice.classList.add('on');
-          // a beat to sit back, then the site drives itself
-          // (any scroll / touch / key cancels via cancelTour)
-          setTimeout(()=>{
-            if(tourStop||scrollY>120)return;
-            choice.classList.remove('on');
-            setTimeout(startTour,500);
-          },2400);
-        },500);
-      },500);
+    // the phone finishes its handshake, then the site drives itself
+    const kickTour=()=>{
+      if(tourStop||scrollY>120)return;
+      tourTimer=setTimeout(startTour,700);
     };
-    // opening handshake — dots animate, then a short scripted exchange,
-    // then it settles on "Connection" and the normal cycle takes over
-    const lead=document.getElementById('ccLead');
-    const setLead=(html,cb)=>{
-      lead.style.opacity=0;
-      setTimeout(()=>{ lead.innerHTML=html; lead.style.opacity=1; cb&&cb(); },440);
-    };
-    const start=()=>{
-      if(!document.body.classList.contains('arrived')){setTimeout(start,150);return;}
-      // 1) "Establishing connection..." holds ~5s while the dots pulse
-      setTimeout(()=>setLead('With <span class="cc-hi">you</span>'),2200);
-      setTimeout(()=>setLead('Good<span class="cc-hi">, connected.</span>'),3450);
-      setTimeout(()=>setLead('Connection',()=>{
-        setTimeout(()=>{
-          setLead('Connection creates<span class="cc-dots"><i>.</i><i>.</i><i>.</i></span>');
-          setTimeout(startStarfish,350);
-        },500);
-      }),4700);
-    };
-    start();
+    if(window.__phoneBooted)kickTour();
+    else addEventListener('phone-booted',kickTour,{once:true});
   })();
 
   // thesis line types on (hero point size, glass box) when scrolled into view
@@ -2508,6 +2500,10 @@
         const h=ph.offsetHeight,w=ph.offsetWidth;
         if(!h||!w)return;
         ph.style.setProperty('--phs',Math.min(1,(innerWidth*.94)/h,(innerHeight*.9)/w).toFixed(3));
+        // the frame is rotated 90°, so the video is rotated -90° back upright —
+        // which means its width/height swap relative to the screen cut-out
+        const sw=scr.offsetWidth,sh=scr.offsetHeight;
+        if(sw&&sh){ v.style.width=sh+'px'; v.style.height=sw+'px'; }
       };
       fit(); addEventListener('resize',fit);
       ph.classList.add('landscape');
@@ -2551,15 +2547,16 @@
         setTimeout(()=>{ reply.classList.add('said'); secondLine(); },1700);
       },700);
     };
-    const io=new IntersectionObserver(es=>es.forEach(e=>{
-      if(e.isIntersecting && !started){
-        started=true;
-        const ph=document.getElementById('phone'); if(ph)ph.classList.add('in');
-        setTimeout(()=>box.classList.add('in'),650);
-        setTimeout(()=>type(box,A,replyReveal),1150); io.disconnect();
-      }
-    }),{threshold:.35});
-    io.observe(box);
+    // the handshake finishes, the boot layer clears, then the chat lands
+    const kick=()=>{
+      if(started)return; started=true;
+      const ph=document.getElementById('phone'); if(ph)ph.classList.add('in');
+      setTimeout(()=>box.classList.add('in'),420);
+      setTimeout(()=>type(box,A,replyReveal),920);
+    };
+    if(window.__phoneBooted)kick();
+    else addEventListener('phone-booted',kick,{once:true});
+    setTimeout(kick,45000);   // safety net
   })();
 
   // connector line between the CREATE / CONNECTION. word-nodes
