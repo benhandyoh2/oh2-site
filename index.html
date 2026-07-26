@@ -2202,9 +2202,21 @@
         starNodes.forEach(nd=>{nd.el.style.transition=
           'opacity .3s ease,background .35s ease,border-color .35s ease,box-shadow .35s ease,color .35s ease';});
         starMagnet(hero,cx,cy);
+        // clockwise preview — each node glows & zooms in turn (~10s sweep)
+        const ordered=[...starNodes].sort((a,b)=>{
+          const aa=(Math.atan2(a.hy-cy,a.hx-cx)+Math.PI/2+Math.PI*2)%(Math.PI*2);
+          const bb=(Math.atan2(b.hy-cy,b.hx-cx)+Math.PI/2+Math.PI*2)%(Math.PI*2);
+          return aa-bb;});
+        ordered.forEach((nd,k)=>{
+          setTimeout(()=>{
+            if(nd.lit)return;               // visitor already lit this one
+            nd.el.classList.add('lit'); nd.ts=1.42;
+            setTimeout(()=>{ if(!nd.lit){nd.el.classList.remove('lit'); nd.ts=1;} },560);
+          },300+k*640);
+        });
       },150+n*58+500);
-      // hold the full constellation, then hand over to the finale
-      setTimeout(finale, 150+n*58+1600);
+      // hold through the preview sweep, then hand over to the finale
+      setTimeout(finale, 150+n*58+500+300+n*640+1100);
     };
     const starNodes=[];
     const starMagnet=(hero)=>{
