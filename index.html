@@ -996,7 +996,7 @@
     backdrop-filter:blur(12px) saturate(1.15);-webkit-backdrop-filter:blur(12px) saturate(1.15);
     box-shadow:0 14px 40px rgba(0,0,0,.26),inset 0 1px 0 rgba(255,255,255,.05);
     opacity:0;
-    transition:transform .55s cubic-bezier(.2,.8,.25,1),opacity .3s ease;
+    transition:transform .45s cubic-bezier(.2,.8,.25,1),opacity .25s ease;
   }
   .cs-pill.on{opacity:1}
   .conn-choice{
@@ -1654,9 +1654,9 @@
     const block=document.getElementById('introBlock');
     document.body.style.overflow='hidden';
     // O, then H, then 2 — staggered build
-    setTimeout(()=>document.querySelector('.il-o').classList.add('on'), 500);
-    setTimeout(()=>document.querySelector('.il-h').classList.add('on'), 950);
-    setTimeout(()=>document.querySelector('.il-2').classList.add('on'), 1400);
+    setTimeout(()=>document.querySelector('.il-o').classList.add('on'), 300);
+    setTimeout(()=>document.querySelector('.il-h').classList.add('on'), 620);
+    setTimeout(()=>document.querySelector('.il-2').classList.add('on'), 940);
     // sit for 3s once complete, then glide up to the top-left
     setTimeout(()=>{
       block.classList.add('rest');
@@ -1666,8 +1666,8 @@
         document.body.classList.add('arrived');
         setTimeout(()=>{window.placeHwLine&&window.placeHwLine();window.rebuildNet&&window.rebuildNet()},1600);
         setTimeout(()=>intro.remove(),700);
-      },1000);
-    }, 1400+600+3000);
+      },800);
+    }, 940+500+1400);
   })();
 
   // scroll reveals
@@ -2194,17 +2194,17 @@
         setTimeout(()=>{
           p.classList.add('on');
           p.style.transform='translate(-50%,-50%) scale(1)';
-          setTimeout(()=>line.classList.add('on'),240);
-        },260+i*95);
+          setTimeout(()=>line.classList.add('on'),170);
+        },150+i*58);
       });
       // once everyone has landed, hand transforms to the magnet loop
       setTimeout(()=>{
         starNodes.forEach(nd=>{nd.el.style.transition=
           'opacity .3s ease,background .35s ease,border-color .35s ease,box-shadow .35s ease,color .35s ease';});
         starMagnet(hero,cx,cy);
-      },260+n*95+620);
+      },150+n*58+500);
       // hold the full constellation, then hand over to the finale
-      setTimeout(finale, 260+n*95+2600);
+      setTimeout(finale, 150+n*58+1600);
     };
     const starNodes=[];
     const starMagnet=(hero)=>{
@@ -2326,7 +2326,7 @@
       if(star)star.style.opacity=0;
       setTimeout(()=>{
         // fade the cycler box out, then offer the wheel to the visitor
-        cyc.style.transition='opacity .6s ease';
+        cyc.style.transition='opacity .45s ease';
         cyc.style.opacity=0;
         setTimeout(()=>{
           cyc.style.display='none';
@@ -2337,10 +2337,10 @@
           setTimeout(()=>{
             if(tourStop||scrollY>120)return;
             choice.classList.remove('on');
-            setTimeout(startTour,600);
-          },3800);
-        },700);
-      },1000);
+            setTimeout(startTour,500);
+          },2400);
+        },500);
+      },500);
     };
     // opening handshake — dots animate, then a short scripted exchange,
     // then it settles on "Connection" and the normal cycle takes over
@@ -2352,11 +2352,14 @@
     const start=()=>{
       if(!document.body.classList.contains('arrived')){setTimeout(start,150);return;}
       // 1) "Establishing connection..." holds ~5s while the dots pulse
-      setTimeout(()=>setLead('With <span class="cc-hi">you</span>'),5000);
-      setTimeout(()=>setLead('Good<span class="cc-hi">, connected.</span>'),6900);
+      setTimeout(()=>setLead('With <span class="cc-hi">you</span>'),2200);
+      setTimeout(()=>setLead('Good<span class="cc-hi">, connected.</span>'),3450);
       setTimeout(()=>setLead('Connection',()=>{
-        setTimeout(startStarfish,800);
-      }),8800);
+        setTimeout(()=>{
+          setLead('Connection creates<span class="cc-dots"><i>.</i><i>.</i><i>.</i></span>');
+          setTimeout(startStarfish,350);
+        },500);
+      }),4700);
     };
     start();
   })();
@@ -2445,7 +2448,7 @@
       });
     });
   }
-  setTimeout(()=>{if(!document.body.classList.contains('arrived')){document.body.classList.add('arrived');placeHwLine();}},11500);
+  setTimeout(()=>{if(!document.body.classList.contains('arrived')){document.body.classList.add('arrived');placeHwLine();}},7000);
   placeHwLine();
   addEventListener('resize',placeHwLine);
   addEventListener('load',placeHwLine);
