@@ -975,6 +975,19 @@
   .cc-word.cc-out{opacity:0;transform:translateY(-7px)}
   .cc-word.cc-pre{opacity:0;transform:translateY(7px)}
   body.arrived .conn-cycle{opacity:1}
+  .cc-idea{
+    position:absolute;left:50%;top:88%;
+    transform:translate(-50%,-50%) translateY(16px);
+    font-family:'Inter',var(--sans);font-weight:400;
+    font-size:clamp(13px,1.4vw,18px);letter-spacing:-.01em;color:var(--ink);
+    padding:15px 30px;border-radius:999px;white-space:nowrap;
+    background:rgba(233,232,228,.06);border:1px solid rgba(233,232,228,.2);
+    backdrop-filter:blur(14px) saturate(1.15);-webkit-backdrop-filter:blur(14px) saturate(1.15);
+    box-shadow:0 18px 50px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.05);
+    opacity:0;transition:opacity .6s ease,transform .6s cubic-bezier(.2,.7,.2,1);
+    pointer-events:none;
+  }
+  .cc-idea.on{opacity:1;transform:translate(-50%,-50%)}
   /* starfish of connected word-nodes */
   .conn-star{position:absolute;inset:0;pointer-events:none;transition:opacity .6s ease}
   .conn-star svg{position:absolute;inset:0;width:100%;height:100%}
@@ -1254,6 +1267,7 @@
         <span class="cc-lead" id="ccLead">Establishing connection<span class="cc-dots"><i>.</i><i>.</i><i>.</i></span></span>
         <span class="cc-rest" id="ccRest"><span class="cc-creates">creates</span><span class="cc-rot"><span class="cc-word" id="ccWord">belonging</span></span></span>
       </div>
+      <div class="cc-idea" id="ccIdea">you get the idea</div>
       <div class="conn-choice" id="connChoice">
         <div class="ch-note">Let us drive, you relax.</div>
       </div>
@@ -2215,8 +2229,14 @@
           },300+k*640);
         });
       },150+n*58+500);
-      // hold through the preview sweep, then hand over to the finale
-      setTimeout(finale, 150+n*58+500+300+n*640+1100);
+      // after the sweep: "you get the idea" animates on, then the finale
+      const sweepEnd=150+n*58+500+300+n*640+650;
+      setTimeout(()=>{
+        if(tourStop)return;
+        const idea=document.getElementById('ccIdea');
+        if(idea)idea.classList.add('on');
+      },sweepEnd);
+      setTimeout(finale, sweepEnd+2900);
     };
     const starNodes=[];
     const starMagnet=(hero)=>{
@@ -2336,6 +2356,8 @@
       const choice=document.getElementById('connChoice');
       const star=document.getElementById('connStar');
       if(star)star.style.opacity=0;
+      const idea=document.getElementById('ccIdea');
+      if(idea)idea.classList.remove('on');
       setTimeout(()=>{
         // fade the cycler box out, then offer the wheel to the visitor
         cyc.style.transition='opacity .45s ease';
