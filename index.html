@@ -1070,6 +1070,16 @@
     transition:opacity 1.1s cubic-bezier(.2,.6,.2,1),transform 1.1s cubic-bezier(.2,.6,.2,1);
   }
   .phone.in{opacity:1;transform:none}
+  /* the frame turns on its side to play the film */
+  .phone.landscape{transform:rotate(90deg) scale(var(--phs,1))}
+  .ph-screen{
+    position:absolute;inset:9.5svh 4.4% 6.5svh;
+    border-radius:10px;overflow:hidden;background:#000;
+    display:flex;align-items:center;justify-content:center;
+    opacity:0;pointer-events:none;transition:opacity .55s ease;
+  }
+  .phone.filming .ph-screen{opacity:1;pointer-events:auto;cursor:pointer}
+  .ph-screen video{width:100%;height:100%;object-fit:contain;display:block}
   .ph-speaker{
     position:absolute;top:3.2svh;left:50%;transform:translateX(-50%);
     width:23%;height:5px;border-radius:3px;border:1px solid rgba(255,255,255,.42);
@@ -1084,7 +1094,7 @@
   }
   .chat-wrap{
     display:flex;flex-direction:column;align-items:stretch;gap:10px;
-    width:100%;max-width:100%;margin:auto 0 9svh;
+    width:100%;max-width:100%;margin:auto 0;
   }
   .thesis-box{
     align-self:flex-start;box-sizing:border-box;max-width:86%;
@@ -1309,7 +1319,9 @@
       <span class="rb-dots"><i></i><i></i><i></i></span>
       <span class="rb-text">what? you just made that stat up!</span>
     </div>
+    <div class="thesis-box" id="thesisBox2"><span class="tt-txt" id="ttTxt2"></span></div>
     </div>
+    <div class="ph-screen" id="phScreen"><video id="phFilm" playsinline preload="none" muted></video></div>
     <span class="ph-home" aria-hidden="true"></span>
   </div>
 </section>
@@ -2379,10 +2391,10 @@
           // wait for the chat exchange to finish, hold 3s, then drop to next
           let advanced=false;
           const advance=()=>{ if(advanced||tourStop)return; advanced=true;
-            tourTimer=setTimeout(()=>go(idx+1),3000); };
+            tourTimer=setTimeout(()=>go(idx+1),1400); };
           if(window.__thesisSaid) advance();
           else{ addEventListener('thesis-said',advance,{once:true});
-            tourTimer=setTimeout(advance,13000); }   // safety net
+            tourTimer=setTimeout(advance,60000); }   // safety net
         }else{
           tourTimer=setTimeout(()=>go(idx+1),9000);
         }
@@ -2440,44 +2452,103 @@
     const box=document.getElementById('thesisBox');
     const txt=document.getElementById('ttTxt');
     if(!box||!txt)return;
+    const box2=document.getElementById('thesisBox2');
+    const txt2=document.getElementById('ttTxt2');
     const SEG=[
       {t:'Brands that connect with their customers 🤝 are ',dim:false},
       {t:'85% more successful',dim:false},
       {t:' than ones that don\u2019t',dim:true},
       {t:'. 📈',dim:false},
     ];
-    const caret=document.createElement('span'); caret.className='tt-caret';
-    const chars=[];
-    SEG.forEach(s=>{ for(const c of s.t){
-      const sp=document.createElement('span');
-      sp.className='ch'+(s.dim?' dim':''); sp.textContent=c;
-      txt.appendChild(sp); chars.push(sp);
-    }});
-    txt.appendChild(caret);
+    // the comeback: a stat we didn't make up — and the campaign it became
+    const SEG2=[
+      {t:'Maybe. But this one isn’t made up — ',dim:false},
+      {t:'riders aged 40–59 account for 55% of fatal motorcycle crashes',dim:false},
+      {t:' in New Zealand',dim:true},
+      {t:'. 🏍️',dim:false},
+    ];
+    const build=(seg,host)=>{
+      const caret=document.createElement('span'); caret.className='tt-caret';
+      const chars=[];
+      seg.forEach(s=>{ for(const c of s.t){
+        const sp=document.createElement('span');
+        sp.className='ch'+(s.dim?' dim':''); sp.textContent=c;
+        host.appendChild(sp); chars.push(sp);
+      }});
+      host.appendChild(caret);
+      return {caret,chars};
+    };
+    const A=build(SEG,txt);
+    const B=(box2&&txt2)?build(SEG2,txt2):null;
     let started=false;
-    const type=()=>{
+    const type=(bx,rig,done)=>{
       let i=0;
       const step=()=>{
-        if(i>=chars.length){ box.classList.add('done'); replyReveal(); return; }
-        chars[i].classList.add('on');
-        chars[i].after(caret);
-        const isSpace=chars[i].textContent===' ';
+        if(i>=rig.chars.length){ bx.classList.add('done'); if(done)done(); return; }
+        rig.chars[i].classList.add('on');
+        rig.chars[i].after(rig.caret);
+        const isSpace=rig.chars[i].textContent===' ';
         i++;
         setTimeout(step, isSpace?14:22+Math.random()*20);
       };
       step();
     };
+    const finish=()=>{
+      window.__thesisSaid=true;
+      dispatchEvent(new Event('thesis-said'));
+    };
+    // the chat lands, then the frame turns on its side and plays the film
+    const playFilm=()=>{
+      const ph=document.getElementById('phone');
+      const scr=document.getElementById('phScreen');
+      const v=document.getElementById('phFilm');
+      const tile=document.getElementById('tile-ada');
+      if(!ph||!scr||!v||!tile){ finish(); return; }
+      const fit=()=>{
+        const h=ph.offsetHeight,w=ph.offsetWidth;
+        if(!h||!w)return;
+        ph.style.setProperty('--phs',Math.min(1,(innerWidth*.94)/h,(innerHeight*.9)/w).toFixed(3));
+      };
+      fit(); addEventListener('resize',fit);
+      ph.classList.add('landscape');
+      v.src=tile.dataset.src;
+      scr.addEventListener('click',()=>{
+        if(window.openLB)window.openLB(tile.dataset.src,tile.dataset.label);
+      });
+      let ended=false;
+      const off=()=>{
+        if(ended)return; ended=true;
+        try{v.pause()}catch(e){}
+        ph.classList.remove('filming');
+        setTimeout(()=>{
+          ph.classList.remove('landscape');
+          removeEventListener('resize',fit);
+          setTimeout(finish,700);
+        },520);
+      };
+      setTimeout(()=>{
+        ph.classList.add('filming');
+        v.muted=true; v.play().catch(()=>{});
+        v.addEventListener('ended',off,{once:true});
+        v.addEventListener('error',()=>setTimeout(off,600),{once:true});
+        setTimeout(off,15000);   // a taste — the full film plays below
+      },1000);
+    };
+    // second blue message answers the callout, then hands off to the film below
+    const secondLine=()=>{
+      if(!B){ playFilm(); return; }
+      setTimeout(()=>{
+        box2.classList.add('in');
+        setTimeout(()=>type(box2,B,()=>setTimeout(playFilm,900)),480);
+      },800);
+    };
     // reply arrives: bubble pops in, dots type for ~1.7s, then the message
     const replyReveal=()=>{
       const reply=document.getElementById('replyBubble');
-      if(!reply)return;
+      if(!reply){ secondLine(); return; }
       setTimeout(()=>{
         reply.classList.add('on');
-        setTimeout(()=>{
-          reply.classList.add('said');
-          window.__thesisSaid=true;
-          dispatchEvent(new Event('thesis-said'));
-        },1700);
+        setTimeout(()=>{ reply.classList.add('said'); secondLine(); },1700);
       },700);
     };
     const io=new IntersectionObserver(es=>es.forEach(e=>{
@@ -2485,7 +2556,7 @@
         started=true;
         const ph=document.getElementById('phone'); if(ph)ph.classList.add('in');
         setTimeout(()=>box.classList.add('in'),650);
-        setTimeout(type,1150); io.disconnect();
+        setTimeout(()=>type(box,A,replyReveal),1150); io.disconnect();
       }
     }),{threshold:.35});
     io.observe(box);
