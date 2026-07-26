@@ -1267,7 +1267,6 @@
         <span class="cc-lead" id="ccLead">Establishing connection<span class="cc-dots"><i>.</i><i>.</i><i>.</i></span></span>
         <span class="cc-rest" id="ccRest"><span class="cc-creates">creates</span><span class="cc-rot"><span class="cc-word" id="ccWord">belonging</span></span></span>
       </div>
-      <div class="cc-idea" id="ccIdea">you get the idea</div>
       <div class="conn-choice" id="connChoice">
         <div class="ch-note">Let us drive, you relax.</div>
       </div>
@@ -1282,7 +1281,7 @@
     <div class="thesis-box" id="thesisBox"><span class="tt-txt" id="ttTxt"></span></div>
     <div class="reply-bubble" id="replyBubble">
       <span class="rb-dots"><i></i><i></i><i></i></span>
-      <span class="rb-text">wait.. what?</span>
+      <span class="rb-text">what? you just made that stat up!</span>
     </div>
   </div>
 </section>
@@ -2229,14 +2228,9 @@
           },200+k*230);
         });
       },150+n*58+500);
-      // after the sweep: "you get the idea" animates on, then the finale
+      // after the sweep: hand off to the thesis line below
       const sweepEnd=150+n*58+500+200+n*230+520;
-      setTimeout(()=>{
-        if(tourStop)return;
-        const idea=document.getElementById('ccIdea');
-        if(idea)idea.classList.add('on');
-      },sweepEnd);
-      setTimeout(finale, sweepEnd+2900);
+      setTimeout(finale, sweepEnd+900);
     };
     const starNodes=[];
     const starMagnet=(hero)=>{
@@ -2356,8 +2350,6 @@
       const choice=document.getElementById('connChoice');
       const star=document.getElementById('connStar');
       if(star)star.style.opacity=0;
-      const idea=document.getElementById('ccIdea');
-      if(idea)idea.classList.remove('on');
       setTimeout(()=>{
         // fade the cycler box out, then offer the wheel to the visitor
         cyc.style.transition='opacity .45s ease';
@@ -2404,11 +2396,10 @@
     const txt=document.getElementById('ttTxt');
     if(!box||!txt)return;
     const SEG=[
-      {t:'Longitudinal success lies in the strength of connection 💬, ',dim:false},
-      {t:'with audience',dim:true},
-      {t:' & ',dim:false},
-      {t:'within audience communication assets',dim:true},
-      {t:'. 🔗 🤝',dim:false},
+      {t:'Brands that connect with their customers 🤝 are ',dim:false},
+      {t:'85% more successful',dim:false},
+      {t:' than ones that don\u2019t',dim:true},
+      {t:'. 📈',dim:false},
     ];
     const caret=document.createElement('span'); caret.className='tt-caret';
     const chars=[];
