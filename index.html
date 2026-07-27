@@ -2398,8 +2398,10 @@
       const drawn_=()=>{ ph.classList.add('drawn'); after(); };
       if(!path||!path.getTotalLength){ ph.classList.add('in','drawn'); after(); return; }
       const shape=()=>{
-        const b=ph.getBoundingClientRect();
-        const w=b.width,h=b.height;
+        // the layout box, not the painted one — in landscape the frame is
+        // rotated 90deg and a client rect would come back swapped and scaled
+        let w=ph.offsetWidth,h=ph.offsetHeight;
+        if(!w||!h){ const b=ph.getBoundingClientRect(); w=b.width; h=b.height; }
         if(!w||!h)return 0;
         const cs=getComputedStyle(ph);
         let r=parseFloat(cs.borderTopLeftRadius)||44;
@@ -2421,11 +2423,13 @@
       path.style.strokeDashoffset=len;
       // once it is drawn, keep it drawn through any resize
       let drawn=false;
-      addEventListener('resize',()=>{
-        const l=shape(); if(!l)return;
+      const remeasure=()=>{
+        const l=shape(); if(!l||Math.abs(l-len)<.5)return;
         len=l; path.style.strokeDasharray=l;
         path.style.strokeDashoffset=drawn?0:l;
-      });
+      };
+      addEventListener('resize',remeasure);
+      if(window.ResizeObserver)new ResizeObserver(remeasure).observe(ph);
       requestAnimationFrame(()=>{
         if(drawn)return;
         ph.classList.add('in');
@@ -2458,7 +2462,7 @@
       });
     };
     const run=()=>{
-      if(document.hidden){ addEventListener('visibilitychange',run,{once:true}); return; }
+      if(document.hidden){ document.addEventListener('visibilitychange',run,{once:true}); return; }
       if(!document.body.classList.contains('arrived')){ setTimeout(run,150); return; }
       drawKeyline(boot_);
     };
