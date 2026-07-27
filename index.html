@@ -1143,6 +1143,24 @@
   @keyframes phwake{0%{opacity:0}9%{opacity:1}26%{opacity:.35}100%{opacity:1}}
   /* the frame turns on its side to play the film */
   .phone.landscape{transform:rotate(90deg) scale(var(--phs,1))}
+  /* the film ends and the keyline lets go — it breaks into shards that
+     drop away, taking the screen and the small details with it */
+  .phone.shatter{pointer-events:none}
+  .phone.shatter .ph-screen,.phone.shatter .chat-wrap,.phone.shatter .ph-boot,
+  .phone.shatter .ph-speaker,.phone.shatter .ph-cam,.phone.shatter .ph-home{
+    opacity:0 !important;transition:opacity .55s ease}
+  .phone.shatter::before,.phone.shatter::after{
+    opacity:0 !important;transition:opacity .55s ease}
+  .ph-draw .shard{
+    transition:none;transform-box:fill-box;transform-origin:center;
+    animation:shardFall 1.5s cubic-bezier(.34,.04,.64,1) forwards;
+    animation-delay:var(--dl,0s);
+  }
+  @keyframes shardFall{
+    0%{transform:translate(0,0) rotate(0deg);opacity:1}
+    55%{opacity:.9}
+    100%{transform:translate(var(--dx,0px),var(--dy,320px)) rotate(var(--rot,20deg));opacity:0}
+  }
   .ph-screen{
     position:absolute;inset:11.9% 4.4% 8.1%;z-index:3;
     border-radius:10px;overflow:hidden;background:#000;
@@ -1476,14 +1494,9 @@
     <div class="thesis-box" id="thesisBox"><span class="tt-txt" id="ttTxt"></span></div>
     <div class="reply-bubble" id="replyBubble">
       <span class="rb-dots"><i></i><i></i><i></i></span>
-      <span class="rb-text">ok, but show me how to make a connection?</span>
+      <span class="rb-text">Ok, show me something that ‘connects’??!!</span>
     </div>
     <div class="thesis-box" id="thesisBox2"><span class="tt-txt" id="ttTxt2"></span></div>
-    <div class="reply-bubble" id="replyBubble2">
-      <span class="rb-dots"><i></i><i></i><i></i></span>
-      <span class="rb-text">ok. that one got me.</span>
-    </div>
-    <div class="thesis-box" id="thesisBox3"><span class="tt-txt" id="ttTxt3"></span></div>
     </div>
     <div class="ph-screen" id="phScreen">
       <div class="ph-stage" id="phStage">
@@ -2519,7 +2532,7 @@
       // sections whose hero film the tour opens, plays, then closes
       // each section queues its films; RTS follows the main ad with the
       // ROAD AGAIN social cut, opened automatically
-      const FILMS={feature:['tile-ada','tile-road'],feature2:['tile-forager'],
+      const FILMS={feature:['tile-road'],feature2:['tile-forager'],
         feature3:['tile-exo'],feature4:['tile-wahs']};
       const go=(idx)=>{
         if(tourStop||idx>=stops.length)return;
@@ -2611,9 +2624,9 @@
     ];
     // the answer: something true, and the campaign it became
     const SEG2=[
-      {t:'Ok here’s an example: ',dim:false},
-      {t:'Motorcyclists aged 40–59 account for 55% of all fatal motorcycle crashes',dim:false},
-      {t:'. 🏍️',dim:false},
+      {t:'Ok, here’s an example: ',dim:false},
+      {t:'Motorcyclists 40–60 account for 55% of all fatal motorcycle crashes',dim:false},
+      {t:'..',dim:false},
     ];
     // one span per character, but non-space runs are wrapped in a nowrap
     // group so a line can only ever break at a real space — otherwise an
@@ -2663,6 +2676,28 @@
     const finish=()=>{
       window.__thesisSaid=true;
       dispatchEvent(new Event('thesis-said'));
+    };
+    // the film has said it — the keyline breaks into shards and falls away
+    const shatterFrame=(ph)=>{
+      const svg=document.getElementById('phDraw');
+      const path=svg&&svg.querySelector('path');
+      ph.classList.add('shatter');
+      if(path&&path.getTotalLength){
+        const len=path.getTotalLength();
+        const N=14, seg=len/N;
+        for(let i=0;i<N;i++){
+          const c=path.cloneNode();
+          c.setAttribute('class','shard');
+          c.style.strokeDasharray=(seg*.88)+' '+len;
+          c.style.strokeDashoffset=-(i*seg);
+          c.style.setProperty('--dx',(Math.random()*220-110).toFixed(0)+'px');
+          c.style.setProperty('--dy',(240+Math.random()*300).toFixed(0)+'px');
+          c.style.setProperty('--rot',(Math.random()*90-45).toFixed(0)+'deg');
+          c.style.setProperty('--dl',(Math.random()*.3).toFixed(2)+'s');
+          svg.appendChild(c);
+        }
+        path.style.opacity='0';
+      }
     };
     // the chat lands, then the frame turns on its side and plays the film
     const playFilm=()=>{
@@ -2715,14 +2750,10 @@
         try{v.pause()}catch(e){}
         ph.classList.remove('filming');
         setTimeout(()=>{
-          // the frame turns back upright and the conversation picks up again
-          ph.classList.remove('landscape');
+          // the keyline breaks up and falls away, and the tour scrolls on
+          shatterFrame(ph);
           removeEventListener('resize',fit);
-          setTimeout(()=>{
-            ph.classList.remove('turning');
-            stage.style.width=''; stage.style.height='';
-          },1100);
-          setTimeout(afterFilm,1100);
+          setTimeout(finish,1500);
         },520);
       };
       setTimeout(()=>{
@@ -2733,42 +2764,12 @@
         setTimeout(off,90000);   // safety net only — the film runs its full length
       },1500);
     };
-    // the frame is upright again: they answer, then we sign off and hand over
-    const afterFilm=()=>{
-      if(!C){ finish(); return; }
-      const wrap=document.querySelector('.chat-wrap');
-      const r2=document.getElementById('replyBubble2');
-      // flex-end overflow is unreachable by scroll, so measure the first
-      // message directly: if its top sits above the frame, soften the cut
-      const remask=()=>{
-        if(!wrap)return;
-        wrap.classList.add('deep');
-        requestAnimationFrame(()=>{
-          const f=wrap.firstElementChild;
-          const cut=f?(wrap.getBoundingClientRect().top-f.getBoundingClientRect().top):0;
-          wrap.classList.toggle('masked', cut>8);
-        });
-      };
-      remask();
-      if(!r2){ box3.classList.add('in'); remask();
-        setTimeout(()=>type(box3,C,()=>setTimeout(finish,1400)),480); return; }
-      setTimeout(()=>{
-        r2.classList.add('on'); remask();
-        setTimeout(()=>{
-          r2.classList.add('said'); remask();
-          setTimeout(()=>{
-            box3.classList.add('in'); remask();
-            setTimeout(()=>type(box3,C,()=>{ remask(); setTimeout(finish,1400); }),480);
-          },1000);
-        },1600);
-      },700);
-    };
     // second blue message answers the callout, then hands off to the film below
     const secondLine=()=>{
       if(!B){ playFilm(); return; }
       setTimeout(()=>{
         box2.classList.add('in');
-        setTimeout(()=>type(box2,B,()=>setTimeout(playFilm,900)),480);
+        setTimeout(()=>type(box2,B,()=>setTimeout(playFilm,2200)),480);
       },800);
     };
     // reply arrives: bubble pops in, dots type for ~1.7s, then the message
