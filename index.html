@@ -1521,15 +1521,6 @@
 <section class="feature" id="feature">
   <img class="feat-img" src="ride-to-survive.jpg" alt="Ride to Survive — rider portrait">
   <div class="feat-veil"></div>
-  <div class="feat-chat" id="featChat" aria-hidden="true">
-    <div class="fchat-wrap">
-      <div class="fc-blue">55% of fatal motorbike crashes involve riders between 40 and 59 years old.</div>
-      <div class="fc-green">
-        <span class="rb-dots"><i></i><i></i><i></i></span>
-        <span class="rb-text">older dudes, who just love their bikes..?? that's a really sad stat..</span>
-      </div>
-    </div>
-  </div>
   <div class="chips" id="chips">
       <svg class="net" id="net" aria-hidden="true">
         <line id="nl1"/><line id="nl2"/><line id="nl3"/>
@@ -2526,18 +2517,21 @@
     const startTour=()=>{
       const stops=[...document.querySelectorAll('section')];
       // sections whose hero film the tour opens, plays, then closes
-      const FILMS={feature:'tile-ada',feature2:'tile-forager',feature3:'tile-exo',feature4:'tile-wahs'};
+      // each section queues its films; RTS follows the main ad with the
+      // ROAD AGAIN social cut, opened automatically
+      const FILMS={feature:['tile-ada','tile-road'],feature2:['tile-forager'],
+        feature3:['tile-exo'],feature4:['tile-wahs']};
       const go=(idx)=>{
         if(tourStop||idx>=stops.length)return;
         const sec=stops[idx];
         sec.scrollIntoView({behavior:'smooth'});
-        const tileId=FILMS[sec.id];
-        const tile=tileId&&document.getElementById(tileId);
-        if(tile&&window.openLB){
+        const tiles=(FILMS[sec.id]||[]).map(id=>document.getElementById(id)).filter(Boolean);
+        if(tiles.length&&window.openLB){
           const chat=sec.querySelector('.feat-chat');
           // opens the film in the lightbox and advances when it ends
-          const openFilm=()=>{
+          const openFilm=(k)=>{
             if(tourStop)return;
+            const tile=tiles[k];
             window.openLB(tile.dataset.src,tile.dataset.label);
             const lbEl=document.getElementById('lb');
             const v=document.getElementById('lbv');
@@ -2557,7 +2551,9 @@
               window.closeLB&&window.closeLB();
               sec.classList.remove('chatting');
               if(chat)chat.classList.remove('on','blue-in','green-in','green-said');
-              if(!tourStop) tourTimer=setTimeout(()=>go(idx+1),1000);
+              if(tourStop)return;
+              if(k+1<tiles.length) tourTimer=setTimeout(()=>openFilm(k+1),900);
+              else tourTimer=setTimeout(()=>go(idx+1),1000);
             };
             v.addEventListener('ended',done,{once:true});
             v.addEventListener('error',()=>setTimeout(done,1200),{once:true});
@@ -2572,10 +2568,10 @@
               g(()=>chat.classList.add('blue-in'),350);      // question slides up
               g(()=>chat.classList.add('green-in'),2600);    // reply w/ typing dots
               g(()=>chat.classList.add('green-said'),4400);  // reply lands
-              g(openFilm,7200);                              // then play the movie
+              g(()=>openFilm(0),7200);                       // then play the movie
             },1400);
           }else{
-            tourTimer=setTimeout(openFilm,1800);
+            tourTimer=setTimeout(()=>openFilm(0),1800);
           }
         }else if(sec.id==='thesis'){
           // wait for the chat exchange to finish, hold 3s, then drop to next
@@ -2615,9 +2611,8 @@
     ];
     // the answer: something true, and the campaign it became
     const SEG2=[
-      {t:'Good question. Make the message meaningful — ',dim:false},
-      {t:'riders aged 40–59 account for 55% of fatal motorcycle crashes',dim:false},
-      {t:' in New Zealand',dim:true},
+      {t:'Ok here’s an example: ',dim:false},
+      {t:'Motorcyclists aged 40–59 account for 55% of all fatal motorcycle crashes',dim:false},
       {t:'. 🏍️',dim:false},
     ];
     // one span per character, but non-space runs are wrapped in a nowrap
