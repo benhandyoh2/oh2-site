@@ -1268,6 +1268,7 @@
   }
   .thesis-box.in{opacity:1;transform:none}
   .tt-txt{white-space:pre-wrap}
+  .tt-txt .tw{white-space:nowrap}
   .thesis-box .ch{opacity:0;transition:opacity .14s ease}
   .thesis-box .ch.on{opacity:1}
   .thesis-box .ch.dim{color:#fff}
@@ -1475,7 +1476,7 @@
     <div class="thesis-box" id="thesisBox"><span class="tt-txt" id="ttTxt"></span></div>
     <div class="reply-bubble" id="replyBubble">
       <span class="rb-dots"><i></i><i></i><i></i></span>
-      <span class="rb-text">so how do you make a connection?</span>
+      <span class="rb-text">ok, but show me how to make a connection?</span>
     </div>
     <div class="thesis-box" id="thesisBox2"><span class="tt-txt" id="ttTxt2"></span></div>
     <div class="reply-bubble" id="replyBubble2">
@@ -2487,12 +2488,12 @@
     const boot_=()=>{
       at(500,()=>{ ph.classList.add('awake','booting','searching'); startScan(); });
       at(1500,()=>line('Searching for connection?','hi'));
-      at(3100,()=>line('Searching for you'+DOTS));
-      at(4500,()=>{ lockOn(); line('Connected.','ok'); });
-      at(5700,()=>{ boot.classList.add('listing');
+      // the pause is the point: it hunts, the halo breathes, and nothing is
+      // said until the answer lands — which the word list then finishes
+      at(4300,()=>{ lockOn(); boot.classList.add('listing');
         line('Connection creates'+DOTS,'hi'); });
-      CONN_WORDS.forEach((w,i)=>at(6500+i*210,()=>line(w,'word')));
-      const end=6500+CONN_WORDS.length*210+700;
+      CONN_WORDS.forEach((w,i)=>at(5200+i*210,()=>line(w,'word')));
+      const end=5200+CONN_WORDS.length*210+700;
       at(end,()=>{
         ph.classList.remove('booting');
         setTimeout(()=>{ boot.remove(); done(); },760);
@@ -2610,22 +2611,31 @@
       {t:'Connected brands create ',dim:false},
       {t:'relationships',dim:false},
       {t:', not just transactions',dim:true},
-      {t:'. 🤝',dim:false},
+      {t:'. 🤝',dim:false},
     ];
     // the answer: something true, and the campaign it became
     const SEG2=[
       {t:'Good question. Make the message meaningful — ',dim:false},
       {t:'riders aged 40–59 account for 55% of fatal motorcycle crashes',dim:false},
       {t:' in New Zealand',dim:true},
-      {t:'. 🏍️',dim:false},
+      {t:'. 🏍️',dim:false},
     ];
+    // one span per character, but non-space runs are wrapped in a nowrap
+    // group so a line can only ever break at a real space — otherwise an
+    // emoji (Line_Break class ID) gets orphaned onto its own line
     const build=(seg,host)=>{
       const caret=document.createElement('span'); caret.className='tt-caret';
-      const chars=[];
+      const chars=[]; let grp=null;
       seg.forEach(s=>{ for(const c of s.t){
         const sp=document.createElement('span');
         sp.className='ch'+(s.dim?' dim':''); sp.textContent=c;
-        host.appendChild(sp); chars.push(sp);
+        if(c===' '){ grp=null; host.appendChild(sp); }
+        else{
+          if(!grp){ grp=document.createElement('span'); grp.className='tw';
+            host.appendChild(grp); }
+          grp.appendChild(sp);
+        }
+        chars.push(sp);
       }});
       host.appendChild(caret);
       return {caret,chars};
@@ -2635,7 +2645,7 @@
       {t:'That’s ',dim:false},
       {t:'Ride to Survive',dim:false},
       {t:' — film, web and social, put in front of the riders it’s about',dim:true},
-      {t:'. Want the rest? 👇',dim:false},
+      {t:'. Want the rest? 👇',dim:false},
     ];
     const box3=document.getElementById('thesisBox3');
     const txt3=document.getElementById('ttTxt3');
