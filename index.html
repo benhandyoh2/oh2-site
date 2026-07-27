@@ -2427,13 +2427,21 @@
         path.style.strokeDashoffset=drawn?0:l;
       });
       requestAnimationFrame(()=>{
+        if(drawn)return;
         ph.classList.add('in');
         requestAnimationFrame(()=>{
+          if(drawn)return;
           svg.classList.add('go');
           path.style.strokeDashoffset=0;
         });
       });
-      setTimeout(()=>{ drawn=true; drawn_(); },1800);
+      // belt and braces: whatever happened, the frame ends up drawn and visible
+      setTimeout(()=>{
+        drawn=true;
+        path.style.strokeDashoffset=0;
+        ph.classList.add('in');
+        drawn_();
+      },1800);
     };
     const boot_=()=>{
       at(500,()=>{ ph.classList.add('awake','booting'); startScan(); });
@@ -2450,6 +2458,7 @@
       });
     };
     const run=()=>{
+      if(document.hidden){ addEventListener('visibilitychange',run,{once:true}); return; }
       if(!document.body.classList.contains('arrived')){ setTimeout(run,150); return; }
       drawKeyline(boot_);
     };
