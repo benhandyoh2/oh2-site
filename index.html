@@ -1080,10 +1080,13 @@
     border:1px solid transparent;
     border-radius:min(5.6svh,54px);
     display:flex;flex-direction:column;
-    opacity:0;transform:none;
-    transition:opacity .45s ease;
+    opacity:0;transform:rotate(0deg) scale(1);
+    transform-origin:50% 50%;
+    /* the turn interpolates from an explicit identity, not from `none` */
+    transition:opacity .45s ease, transform var(--ph-turn,.95s) var(--ph-ease,cubic-bezier(.62,.02,.24,1));
   }
-  .phone.in{opacity:1;transform:none}
+  .phone.in{opacity:1;transform:rotate(0deg) scale(1)}
+  .phone.turning{will-change:transform}
   /* the keyline draws itself on, one continuous stroke from the top */
   .ph-draw{
     position:absolute;left:-1px;top:-1px;
@@ -1124,9 +1127,15 @@
      its side the stage counter-rotates and everything stays upright together */
   .ph-stage{
     position:absolute;left:50%;top:50%;width:100%;height:100%;
-    transform:translate(-50%,-50%);
+    transform:translate(-50%,-50%) rotate(0deg);
+    /* same duration, same curve as the frame — the two rotations cancel at
+       every instant, so the picture stays upright the whole way round */
+    transition:transform var(--ph-turn,.95s) var(--ph-ease,cubic-bezier(.62,.02,.24,1));
   }
   .phone.landscape .ph-stage{transform:translate(-50%,-50%) rotate(-90deg)}
+  @media (prefers-reduced-motion: reduce){
+    .phone,.ph-stage{--ph-turn:.001s}
+  }
   .ph-stage video{width:100%;height:100%;object-fit:cover;display:block}
   /* sound rides along the bottom edge of the picture */
   .ph-sound{
@@ -1162,6 +1171,10 @@
     opacity:0;pointer-events:none;transition:opacity .7s ease;
   }
   .phone.booting .ph-boot{opacity:1}
+  /* the conversation steps out of the way as the frame turns, rather than
+     riding round on its side — and comes back once it is upright again */
+  .phone .chat-wrap,.phone .ph-boot{transition:opacity .4s ease .48s}
+  .phone.landscape .chat-wrap,.phone.landscape .ph-boot{opacity:0;transition:opacity .3s ease}
   .pb-sig{
     flex:0 0 auto;width:78px;height:64px;
     transition:width .9s cubic-bezier(.5,0,.2,1),height .9s cubic-bezier(.5,0,.2,1),opacity .6s ease;
@@ -1473,8 +1486,7 @@
   <div id="tile-social1" data-src="foragers-social-15-1.mp4" data-label="GLOBAL FORAGERS — SOCIAL 15-1 — SOUND ON"></div>
   <div id="tile-pos" data-kind="image" data-src="foragers-pos.jpg" data-label="GLOBAL FORAGERS — POS / IN-STORE"></div>
   <div id="tile-exo" data-src="exo-louvres-film.mp4" data-label="BECOME AN OUTSIDER — EXO LOUVRES FILM — SOUND ON"></div>
-  <div id="tile-outkv" data-kind="image" data-src="outsider-key-visual.jpg" data-label="BECOME AN OUTSIDER — KEY VISUAL"></div>
-  <div id="tile-wahs" data-src="wahs-film.mp4" data-label="UP THE WAHS — CAMPAIGN FILM — 00:25 — SOUND ON"></div>
+  <div id="tile-wahs" data-src="speed-film.mp4" data-label="UP THE WAHS — CAMPAIGN FILM — 00:22 — SOUND ON"></div>
 </div>
 
 <section class="feature" id="feature">
@@ -1618,22 +1630,12 @@
   <div class="fchips">
     <svg class="net fnet" aria-hidden="true">
       <line class="tri"/><line class="tri"/><line class="tri"/><line class="tri"/><line class="tri"/>
-      <line class="pos-link"/><line class="pos-link"/><line class="pos-link"/><line class="pos-link"/>
     </svg>
     <div class="fdrifter att-bottom" data-cx=".28" data-cy=".40" data-ax="36" data-ay="22" data-wx=".06" data-wy=".09" data-ph="3.0">
       <button class="chip fchip" data-tile="tile-exo" data-label="MOVIE — EXO LOUVRES FILM — SOUND ON" aria-label="Play Exo Louvres film">
         <video muted loop playsinline autoplay src="chip-exo.webm"></video>
       </button>
       <div class="node"><div class="node-card fnode-card"><span class="nc-title">MOVIE</span><span class="nc-dim">FILM — EXO LOUVRES</span></div><span class="node-line"></span></div>
-      <div class="pos-sat">
-        <button class="chip fchip" data-tile="tile-outkv" data-label="KEY VISUAL — BECOME AN OUTSIDER" aria-label="View key visual">
-          <img src="chip-outkv.jpg" alt="Become an Outsider key visual">
-        </button>
-        <span class="chip fchip slotchip sat-slot"><span>IMG 02</span></span>
-        <span class="chip fchip slotchip sat-slot"><span>IMG 03</span></span>
-        <span class="chip fchip slotchip sat-slot"><span>IMG 04</span></span>
-        <div class="node"><div class="node-card fnode-card"><span class="nc-title">KEY VISUAL</span><span class="nc-dim">CAMPAIGN IMAGE</span></div><span class="node-line"></span></div>
-      </div>
     </div>
     <div class="fdrifter att-bottom" data-cx=".20" data-cy=".18" data-ax="40" data-ay="24" data-wx=".08" data-wy=".05" data-ph="1.1">
       <button class="chip fchip" data-tile="tile-exoout" data-label="SOCIAL &mdash; &ldquo;OUTSIDER&rdquo; &mdash; 00:10 &mdash; SOUND ON" aria-label="Play Outsider social spot">
@@ -1678,10 +1680,10 @@
       <div class="node"><div class="node-card fnode-card"><span class="nc-title">SOCIAL</span><span class="nc-dim">SOON</span></div><span class="node-line"></span></div>
     </div>
     <div class="fdrifter att-bottom" data-cx=".48" data-cy=".16" data-ax="40" data-ay="30" data-wx=".06" data-wy=".09" data-ph="3.0">
-      <button class="chip fchip" data-tile="tile-wahs" data-label="MOVIE &mdash; UP THE WAHS &mdash; 00:25 &mdash; SOUND ON" aria-label="Play the Up the Wahs campaign film">
-        <video muted loop playsinline autoplay src="chip-wahs.webm"></video>
+      <button class="chip fchip" data-tile="tile-wahs" data-label="MOVIE &mdash; UP THE WAHS &mdash; 00:22 &mdash; SOUND ON" aria-label="Play the Up the Wahs campaign film">
+        <video muted loop playsinline autoplay src="chip-speed.webm"></video>
       </button>
-      <div class="node"><div class="node-card fnode-card"><span class="nc-title">MOVIE</span><span class="nc-dim">00:25 &middot; CAMPAIGN FILM</span></div><span class="node-line"></span></div>
+      <div class="node"><div class="node-card fnode-card"><span class="nc-title">MOVIE</span><span class="nc-dim">00:22 &middot; CAMPAIGN FILM</span></div><span class="node-line"></span></div>
     </div>
     <div class="fdrifter att-top" data-cx=".26" data-cy=".50" data-ax="40" data-ay="30" data-wx=".07" data-wy=".11" data-ph="5.1">
       <span class="chip fchip slotchip"><span>WEB</span></span>
@@ -2641,7 +2643,10 @@
         if(sw&&sh){ stage.style.width=sh+'px'; stage.style.height=sw+'px'; }
       };
       fit(); addEventListener('resize',fit);
-      ph.classList.add('landscape');
+      // a frame between the sizing and the class, so the browser has a start
+      // value to animate from instead of collapsing both into one style pass
+      ph.classList.add('turning');
+      requestAnimationFrame(()=>requestAnimationFrame(()=>ph.classList.add('landscape')));
       v.src=tile.dataset.src;
       // tapping the picture opens the film full size — but not the sound pill
       scr.addEventListener('click',(e)=>{
@@ -2673,8 +2678,11 @@
           // the frame turns back upright and the conversation picks up again
           ph.classList.remove('landscape');
           removeEventListener('resize',fit);
-          setTimeout(()=>{ stage.style.width=''; stage.style.height=''; },900);
-          setTimeout(afterFilm,900);
+          setTimeout(()=>{
+            ph.classList.remove('turning');
+            stage.style.width=''; stage.style.height='';
+          },1100);
+          setTimeout(afterFilm,1100);
         },520);
       };
       setTimeout(()=>{
@@ -2683,7 +2691,7 @@
         v.addEventListener('ended',off,{once:true});
         v.addEventListener('error',()=>setTimeout(off,600),{once:true});
         setTimeout(off,90000);   // safety net only — the film runs its full length
-      },1000);
+      },1500);
     };
     // the frame is upright again: they answer, then we sign off and hand over
     const afterFilm=()=>{
