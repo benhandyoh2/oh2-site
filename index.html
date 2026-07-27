@@ -1076,13 +1076,30 @@
     position:relative;box-sizing:border-box;
     height:var(--ph-h);width:calc(var(--ph-h) * .468);max-width:90vw;
     margin:0 auto;padding:calc(var(--ph-h) * .119) 4.4% 0;
-    border:1px solid rgba(255,255,255,.5);
+    /* the visible keyline is drawn by .ph-draw — this border only holds the box */
+    border:1px solid transparent;
     border-radius:min(5.6svh,54px);
     display:flex;flex-direction:column;
-    opacity:0;transform:translateY(22px);
-    transition:opacity 1.1s cubic-bezier(.2,.6,.2,1),transform 1.1s cubic-bezier(.2,.6,.2,1);
+    opacity:0;transform:none;
+    transition:opacity .45s ease;
   }
   .phone.in{opacity:1;transform:none}
+  /* the keyline draws itself on, one continuous stroke from the top */
+  .ph-draw{
+    position:absolute;left:-1px;top:-1px;
+    width:calc(100% + 2px);height:calc(100% + 2px);
+    z-index:5;pointer-events:none;overflow:visible;
+  }
+  .ph-draw path{
+    fill:none;stroke:rgba(255,255,255,.5);stroke-width:1;
+    stroke-linecap:round;stroke-linejoin:round;
+  }
+  .ph-draw.go path{transition:stroke-dashoffset 1.7s cubic-bezier(.62,.02,.34,1)}
+  /* the small details land once the outline has closed */
+  .ph-speaker,.ph-cam,.ph-home{opacity:0;transition:opacity .5s ease}
+  .phone.drawn .ph-speaker{opacity:1;transition-delay:.06s}
+  .phone.drawn .ph-cam{opacity:1;transition-delay:.24s}
+  .phone.drawn .ph-home{opacity:1;transition-delay:.42s}
   /* the screen wakes: a soft wash comes up inside the keyline */
   .phone::after{
     content:'';position:absolute;inset:11.9% 4.4% 8.1%;
@@ -1110,7 +1127,7 @@
     transform:translate(-50%,-50%);
   }
   .phone.landscape .ph-stage{transform:translate(-50%,-50%) rotate(-90deg)}
-  .ph-stage video{width:100%;height:100%;object-fit:contain;display:block}
+  .ph-stage video{width:100%;height:100%;object-fit:cover;display:block}
   /* sound rides along the bottom edge of the picture */
   .ph-sound{
     position:absolute;left:50%;bottom:14px;transform:translateX(-50%);z-index:2;
@@ -1400,6 +1417,7 @@
 <section class="thesis-sec top-sec" id="thesis">
   <div class="mod r"><span>MOD 01/05</span><span>THE THESIS</span></div>
   <div class="phone" id="phone">
+    <svg class="ph-draw" id="phDraw" preserveAspectRatio="none" aria-hidden="true"><path></path></svg>
     <span class="ph-speaker" aria-hidden="true"></span>
     <span class="ph-cam" aria-hidden="true"></span>
     <div class="ph-boot" id="phBoot" aria-hidden="true">
@@ -2373,10 +2391,52 @@
     };
     const DOTS='<span class="pb-dots"><i>.</i><i>.</i><i>.</i></span>';
     const at=(ms,fn)=>setTimeout(fn,ms);
-    const run=()=>{
-      if(!document.body.classList.contains('arrived')){ setTimeout(run,150); return; }
-      ph.classList.add('in');                                  // keyline settles
-      at(700,()=>{ ph.classList.add('awake','booting'); startScan(); });
+    // the keyline is drawn on — one stroke, from the top, all the way round
+    const drawKeyline=(after)=>{
+      const svg=document.getElementById('phDraw');
+      const path=svg&&svg.querySelector('path');
+      const drawn_=()=>{ ph.classList.add('drawn'); after(); };
+      if(!path||!path.getTotalLength){ ph.classList.add('in','drawn'); after(); return; }
+      const shape=()=>{
+        const b=ph.getBoundingClientRect();
+        const w=b.width,h=b.height;
+        if(!w||!h)return 0;
+        const cs=getComputedStyle(ph);
+        let r=parseFloat(cs.borderTopLeftRadius)||44;
+        r=Math.min(r,w/2,h/2);
+        const x=.5,y=.5,W=w-1,H=h-1,cx=x+W/2;
+        svg.setAttribute('viewBox','0 0 '+w+' '+h);
+        path.setAttribute('d',
+          'M'+cx+' '+y+
+          'H'+(x+W-r)+'A'+r+' '+r+' 0 0 1 '+(x+W)+' '+(y+r)+
+          'V'+(y+H-r)+'A'+r+' '+r+' 0 0 1 '+(x+W-r)+' '+(y+H)+
+          'H'+(x+r)+'A'+r+' '+r+' 0 0 1 '+x+' '+(y+H-r)+
+          'V'+(y+r)+'A'+r+' '+r+' 0 0 1 '+(x+r)+' '+y+
+          'H'+cx);
+        return path.getTotalLength();
+      };
+      let len=shape();
+      if(!len){ ph.classList.add('in','drawn'); after(); return; }
+      path.style.strokeDasharray=len;
+      path.style.strokeDashoffset=len;
+      // once it is drawn, keep it drawn through any resize
+      let drawn=false;
+      addEventListener('resize',()=>{
+        const l=shape(); if(!l)return;
+        len=l; path.style.strokeDasharray=l;
+        path.style.strokeDashoffset=drawn?0:l;
+      });
+      requestAnimationFrame(()=>{
+        ph.classList.add('in');
+        requestAnimationFrame(()=>{
+          svg.classList.add('go');
+          path.style.strokeDashoffset=0;
+        });
+      });
+      setTimeout(()=>{ drawn=true; drawn_(); },1800);
+    };
+    const boot_=()=>{
+      at(500,()=>{ ph.classList.add('awake','booting'); startScan(); });
       at(1500,()=>line('Establishing connection'+DOTS,'hi'));
       at(3100,()=>line('Searching for you'+DOTS));
       at(4500,()=>{ lockOn(); line('Connected.','ok'); });
@@ -2384,11 +2444,14 @@
         line('Connection creates'+DOTS,'hi'); });
       CONN_WORDS.forEach((w,i)=>at(6500+i*210,()=>line(w,'word')));
       const end=6500+CONN_WORDS.length*210+700;
-      at(end,()=>line('Let us drive, you relax.','note'));
-      at(end+2000,()=>{
+      at(end,()=>{
         ph.classList.remove('booting');
         setTimeout(()=>{ boot.remove(); done(); },760);
       });
+    };
+    const run=()=>{
+      if(!document.body.classList.contains('arrived')){ setTimeout(run,150); return; }
+      drawKeyline(boot_);
     };
     run();
   })();
@@ -2659,7 +2722,7 @@
     // the handshake finishes, the boot layer clears, then the chat lands
     const kick=()=>{
       if(started)return; started=true;
-      const ph=document.getElementById('phone'); if(ph)ph.classList.add('in');
+      const ph=document.getElementById('phone'); if(ph)ph.classList.add('in','drawn');
       setTimeout(()=>box.classList.add('in'),420);
       setTimeout(()=>type(box,A,replyReveal),920);
     };
